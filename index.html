@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="女子プロレス団体経営シミュレーション WRESTLE MANAGER に登場する全127選手の名鑑。">
+<meta property="og:title" content="WRESTLE MANAGER 選手名鑑">
+<meta property="og:description" content="女子プロレス団体経営シミュレーション WRESTLE MANAGER に登場する全127選手の名鑑。">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<title>WRESTLE MANAGER 選手名鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;700;900&family=Oswald:wght@400;500;700&display=swap">
+<style>
+:root{
+  /* Layout: 名鑑の壁 — 固定の操作バーの下に 2:3 の上半身を並べ、選手を押すと詳細シートが重なる。
+     ゲーム本体(選手ファイル)と同じ暗い会場色の単一テーマ。数値の塗りは stat-notation v1.0 の7帯 */
+  color-scheme: dark;
+  --bg: #24221e;
+  --panel: #181614;
+  --well: #12110e;
+  --raise: #2e2b26;
+  --ink: #e8e6e0;
+  --ink-sub: rgba(232,230,224,.62);
+  --ink-dim: rgba(232,230,224,.36);
+  --line: rgba(200,190,170,.10);
+  --line-strong: rgba(200,190,170,.22);
+  --gold: #d4a843;
+  --gold-light: #f0d078;
+  --gold-ink: #1a1712;
+  --scrim: rgba(10,9,8,.82);
+  --chip-bg: rgba(12,11,9,.74);
+
+  --stat-pw: #e74c3c;
+  --stat-sp: #2ecc71;
+  --stat-te: #3498db;
+  --stat-st: #f39c12;
+  --stat-mn: #9b59b6;
+  --tier-0: #63615b;
+  --tier-1: #a8a59d;
+  --tier-white: #f2f0e8;
+
+  --st-Grappler: #bb8fce;
+  --st-Striker: #e74c3c;
+  --st-Submission: #e67e22;
+  --st-Aerial: #2ecc71;
+  --st-Allround: #f1c40f;
+  --st-Brawler: #e88a82;
+  --site-pixiv: #4aa3f0;
+  --site-fanbox: #f0a64a;
+
+  --font-display: 'Bebas Neue', 'Oswald', Impact, sans-serif;
+  --font-label: 'Oswald', 'Arial Narrow', sans-serif;
+  --font-body: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.wrap { width: 100%; max-width: 1360px; margin-inline: auto; padding-inline: max(16px, 2.5vw); }
+
+/* ── 見出し ───────────────────────────── */
+.mast { padding-block: 34px 22px; }
+.mast-kicker {
+  font-family: var(--font-label); font-size: 11px; letter-spacing: .32em;
+  color: var(--gold); text-transform: uppercase;
+}
+.mast-title { display: flex; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; margin: 8px 0 10px; }
+.mast-logo {
+  font-family: var(--font-display); font-size: clamp(36px, 6vw, 58px); line-height: .9;
+  letter-spacing: .08em; color: var(--gold);
+  background: linear-gradient(180deg, var(--gold-light), var(--gold) 70%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.mast h1 { margin: 0; font-size: clamp(22px, 3vw, 30px); font-weight: 900; letter-spacing: .14em; text-wrap: balance; }
+.mast-lede { margin: 0; max-width: 62ch; color: var(--ink-sub); font-size: 13px; }
+.mast-facts { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 14px 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--ink-sub); }
+.mast-facts b {
+  margin-right: 5px; font-family: var(--font-display); font-size: 24px; font-weight: 400;
+  letter-spacing: .04em; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+
+/* ── 操作バー ─────────────────────────── */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30;
+  border-block: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.bar-in { display: flex; flex-direction: column; gap: 8px; padding-block: 10px; }
+.bar-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; min-width: 0; }
+.ctl { display: flex; align-items: center; gap: 7px; }
+.ctl-label {
+  font-family: var(--font-label); font-size: 10px; letter-spacing: .2em;
+  color: var(--ink-dim); text-transform: uppercase; white-space: nowrap;
+}
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r-sm); overflow: hidden; }
+.seg button {
+  appearance: none; border: 0; background: transparent; color: var(--ink-sub);
+  font-size: 12px; padding: 5px 12px; white-space: nowrap;
+}
+.seg button + button { border-left: 1px solid var(--line-strong); }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--gold); color: var(--gold-ink); font-weight: 700; }
+.field {
+  min-width: 0; padding: 5px 9px; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  background: var(--well); color: var(--ink); font-size: 12.5px;
+}
+select.field { padding-right: 26px; }
+.dir {
+  appearance: none; padding: 4px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  background: transparent; color: var(--ink-sub); font-size: 12px; white-space: nowrap;
+}
+.dir:hover { color: var(--ink); border-color: var(--gold); }
+.search { flex: 1 1 220px; }
+.chips { display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  appearance: none; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border: 1px solid var(--line-strong); border-radius: 999px;
+  background: transparent; color: var(--ink-sub); font-size: 12px; white-space: nowrap;
+}
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--ink-dim)); }
+.chip small { font-family: var(--font-label); font-size: 11px; color: var(--ink-dim); }
+.chip:hover { color: var(--ink); }
+.chip[aria-pressed="true"] {
+  color: var(--ink); border-color: var(--c, var(--gold));
+  background: color-mix(in srgb, var(--c, var(--gold)) 18%, transparent);
+}
+.chips-sep { width: 1px; align-self: stretch; background: var(--line-strong); flex: 0 0 auto; }
+.count { margin-left: auto; font-size: 12px; color: var(--ink-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.count b { color: var(--ink); font-weight: 700; }
+
+/* ── 名鑑本体 ─────────────────────────── */
+.roster { padding-block: 18px 12px; min-height: 40vh; }
+.grp { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 26px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+.grp:first-child { margin-top: 4px; }
+.grp i { width: 10px; height: 10px; border-radius: 2px; background: var(--c, var(--gold)); }
+.grp h2 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: .06em; }
+.grp small { font-family: var(--font-label); font-size: 11px; letter-spacing: .08em; color: var(--ink-dim); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 18px 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 16px; align-items: start; }
+
+.portrait {
+  position: relative; display: block; width: 100%; max-width: 100%; aspect-ratio: 2 / 3; overflow: hidden;
+  border-radius: var(--r-md); border-bottom: 3px solid var(--c, var(--gold));
+  background: linear-gradient(180deg, var(--raise), var(--well));
+}
+.portrait img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; transition: transform .4s ease; }
+.portrait .ph {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 36px; font-weight: 900; color: var(--ink-dim);
+}
+.rank {
+  position: absolute; top: 6px; left: 6px; min-width: 28px; padding: 2px 7px 0;
+  border-radius: var(--r-sm); background: var(--chip-bg); text-align: center;
+  font-family: var(--font-display); font-size: 18px; line-height: 1.2; color: var(--gold-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.tile {
+  appearance: none; display: flex; flex-direction: column; min-width: 0; padding: 0;
+  border: 0; border-radius: var(--r-md); background: none; text-align: left;
+}
+.tile:hover .portrait img, .card-img:hover img { transform: scale(1.035); }
+.tile-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 8px 2px 0; }
+.tile-name { font-size: 14px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.roman {
+  font-family: var(--font-label); font-size: 9.5px; letter-spacing: .14em; line-height: 1.35;
+  color: var(--ink-dim); text-transform: uppercase; overflow-wrap: anywhere;
+}
+.meta { display: flex; align-items: center; gap: 5px; margin-top: 2px; font-size: 11px; color: var(--ink-sub); white-space: nowrap; }
+.dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.meta .h { font-family: var(--font-label); font-variant-numeric: tabular-nums; }
+/* 身長で並べたときは身長を金に(能力値は一覧に出さず、詳細シートだけに置く) */
+.roster[data-sort="h"] .h { color: var(--gold-light); }
+
+/* 数値の7帯(stat-notation v1.0 §1) */
+[data-k="pw"] { --k: var(--stat-pw); }
+[data-k="sp"] { --k: var(--stat-sp); }
+[data-k="te"] { --k: var(--stat-te); }
+[data-k="st"] { --k: var(--stat-st); }
+[data-k="mn"] { --k: var(--stat-mn); }
+[data-k="ovr"] { --k: var(--gold); }
+.tv { font-family: var(--font-label); font-weight: 400; font-variant-numeric: tabular-nums; }
+.t0 { color: var(--tier-0); }
+.t1 { color: var(--tier-1); }
+.t2 { color: var(--tier-white); }
+.t3 { color: color-mix(in srgb, var(--k) 50%, var(--tier-white)); }
+.t4 { color: color-mix(in srgb, var(--k) 80%, var(--tier-white)); }
+.t5 { color: var(--k); font-weight: 700; }
+.t6 {
+  color: color-mix(in srgb, var(--k) 78%, var(--tier-white)); font-weight: 700;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--k) 80%, transparent), 0 0 14px color-mix(in srgb, var(--k) 33%, transparent);
+}
+
+/* 紹介文つきカード */
+.card {
+  display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px 16px; min-width: 0;
+  padding: 14px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--panel);
+}
+.card-img { appearance: none; display: block; width: 132px; padding: 0; border: 0; background: none; align-self: start; }
+.card-head { min-width: 0; }
+.kana { font-size: 10.5px; letter-spacing: .12em; color: var(--ink-dim); line-height: 1.4; }
+.name-btn {
+  appearance: none; display: block; margin: 0; padding: 0; border: 0; background: none; text-align: left;
+  font-size: 18px; font-weight: 700; line-height: 1.35;
+}
+.name-btn:hover { color: var(--gold-light); }
+.badges { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 7px 0 9px; font-size: 11px; }
+.badge {
+  padding: 1px 7px; border-radius: 2px; white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+  background: color-mix(in srgb, var(--c) 14%, transparent);
+  color: color-mix(in srgb, var(--c) 72%, var(--ink));
+}
+.badge.role { border-color: var(--line-strong); background: transparent; color: var(--ink-sub); }
+.badges .h { margin-left: 2px; color: var(--ink-sub); font-family: var(--font-label); font-size: 12px; }
+.ovr-line { display: flex; align-items: baseline; gap: 7px; margin-bottom: 7px; }
+.ovr-line .tv { font-family: var(--font-display); font-size: 32px; font-weight: 400; line-height: 1; }
+.ovr-line span { font-family: var(--font-label); font-size: 9px; letter-spacing: .22em; color: var(--ink-dim); }
+.bars { display: grid; gap: 3px; }
+.bar-r { display: grid; grid-template-columns: 24px minmax(0, 1fr) 24px; align-items: center; gap: 8px; padding: 1px 3px; border-radius: 3px; }
+.bar-r small { font-family: var(--font-label); font-size: 10px; letter-spacing: .06em; color: color-mix(in srgb, var(--k) 75%, var(--ink)); }
+.track { height: 5px; overflow: hidden; border-radius: 3px; background: var(--well); }
+.track i { display: block; height: 100%; border-radius: 3px; background: var(--k); }
+.bar-r .tv { font-size: 13px; text-align: right; }
+.card-foot { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.traits { display: flex; flex-wrap: wrap; gap: 5px; }
+.trait {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px 2px 2px;
+  border-radius: var(--r-sm); background: var(--well); font-size: 11.5px; white-space: nowrap;
+}
+.ticon {
+  display: grid; place-items: center; width: 19px; height: 19px; flex: 0 0 auto; border-radius: 3px;
+  font-size: 11px; font-weight: 700; font-style: normal; line-height: 1; color: var(--tc);
+  border: 1px solid color-mix(in srgb, var(--tc) 50%, transparent);
+  background: color-mix(in srgb, var(--tc) 15%, transparent);
+}
+.profile { margin: 0; font-size: 13px; line-height: 1.9; color: color-mix(in srgb, var(--ink) 90%, transparent); }
+.origin { display: grid; gap: 6px; padding-top: 10px; border-top: 1px dashed var(--line-strong); font-size: 12px; }
+.origin-src { color: var(--ink-sub); }
+.origin-src b { color: var(--ink); font-weight: 700; }
+.works { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.works a {
+  display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: baseline; gap: 8px;
+  padding: 3px 6px; border-radius: var(--r-sm); color: var(--ink); text-decoration: none;
+}
+.works a:hover { background: var(--raise); }
+.works a:hover .wt { text-decoration: underline; text-underline-offset: 3px; }
+.site {
+  font-family: var(--font-label); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+  text-align: center; padding: 0 4px; border-radius: 2px;
+  color: var(--sc); border: 1px solid color-mix(in srgb, var(--sc) 45%, transparent);
+}
+.site.pixiv { --sc: var(--site-pixiv); }
+.site.fanbox { --sc: var(--site-fanbox); }
+.wt { overflow-wrap: anywhere; line-height: 1.5; }
+.wy { font-family: var(--font-label); font-size: 11px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+
+.empty { display: grid; justify-items: start; gap: 10px; padding: 40px 0; color: var(--ink-sub); }
+
+/* ── 詳細シート ───────────────────────── */
+.sheet {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
+  background: var(--scrim);
+}
+.sheet-box {
+  display: flex; flex-direction: column; width: min(780px, 100%); max-height: 100%; overflow: hidden;
+  border: 1px solid var(--line-strong); border-radius: var(--r-lg); background: var(--bg);
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+}
+.sheet-head {
+  display: flex; align-items: center; gap: 10px; flex: 0 0 auto;
+  padding: 9px 12px 9px 18px; border-bottom: 1px solid var(--line); background: var(--panel);
+}
+.sheet-no { font-family: var(--font-label); font-size: 11px; letter-spacing: .18em; color: var(--gold); }
+.sheet-pos { font-family: var(--font-label); font-size: 11px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.sheet-nav { display: flex; gap: 6px; margin-left: auto; }
+.icon-btn {
+  appearance: none; display: grid; place-items: center; width: 34px; height: 32px; padding: 0;
+  border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: transparent;
+  color: var(--ink-sub); font-size: 15px; line-height: 1;
+}
+.icon-btn:hover { color: var(--ink); border-color: var(--gold); }
+.sheet-body { overflow-y: auto; overscroll-behavior: contain; }
+.sheet-main { display: flex; flex-wrap: wrap; gap: 18px 22px; padding: 20px; }
+.sheet-img { width: 172px; flex: 0 0 auto; }
+.sheet-info { flex: 1 1 300px; min-width: 0; }
+.sheet-name { margin: 0; font-size: 22px; font-weight: 900; line-height: 1.3; letter-spacing: .04em; }
+.sheet-charts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
+.sheet-charts .bars { flex: 1 1 180px; min-width: 0; }
+.sheet-charts .bar-r { grid-template-columns: 64px minmax(0, 1fr) 24px; }
+.sheet-charts .bar-r small { font-family: var(--font-body); font-size: 11px; letter-spacing: 0; }
+.radar { flex: 0 0 auto; width: 230px; max-width: 100%; height: auto; }
+.rg-ring { fill: none; stroke: var(--line-strong); stroke-width: 1; }
+.rg-axis { stroke: var(--line); stroke-width: 1; }
+.rg-poly { fill: color-mix(in srgb, var(--gold) 25%, transparent); stroke: var(--gold); stroke-width: 1.6; stroke-linejoin: round; }
+.rg-pt { fill: var(--gold-light); }
+.rg-lab { font-family: var(--font-label); font-size: 11px; letter-spacing: .06em; fill: var(--k); }
+.rg-val { font-family: var(--font-label); font-size: 11px; fill: var(--ink-sub); }
+.sheet-sec { padding: 0 20px 18px; }
+.sec-label {
+  margin-bottom: 9px; padding-bottom: 5px; border-bottom: 1px solid var(--line);
+  font-family: var(--font-label); font-size: 10px; letter-spacing: .24em; color: var(--gold); text-transform: uppercase;
+}
+.trait-row { display: grid; grid-template-columns: 19px auto minmax(0, 1fr); align-items: center; gap: 4px 9px; margin-bottom: 6px; }
+.trait-row b { font-size: 13px; }
+.trait-row span { font-size: 11.5px; color: var(--ink-sub); }
+.sheet .profile { font-size: 13.5px; max-width: 65ch; }
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 14px; margin: 0 0 10px; font-size: 12.5px; }
+.facts dt { color: var(--ink-dim); }
+.facts dd { margin: 0; }
+
+/* ── フッター ─────────────────────────── */
+.foot { padding-block: 26px 40px; border-top: 1px solid var(--line); color: var(--ink-dim); font-size: 11.5px; }
+.foot p { margin: 0 0 6px; max-width: 80ch; }
+.foot .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.foot .legend span { white-space: nowrap; }
+.foot .legend b { font-family: var(--font-label); font-weight: 500; color: var(--k); margin-right: 4px; }
+
+.reset {
+  appearance: none; padding: 5px 12px; border: 1px solid var(--gold); border-radius: var(--r-sm);
+  background: transparent; color: var(--gold-light); font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .bar { position: static; }
+  .chips-sep { display: none; }
+  .search { flex-basis: 100%; }
+  .count { margin-left: 0; }
+  .card { grid-template-columns: 108px minmax(0, 1fr); padding: 12px; }
+  .card-img { width: 108px; }
+  .sheet { align-items: flex-start; }
+  .sheet-main { padding: 16px; }
+  .sheet-img { margin-inline: auto; }
+  .sheet-sec { padding: 0 16px 16px; }
+  .radar { margin-inline: auto; }
+}
+@media (max-width: 380px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portrait img { transition: none; }
+}
+</style>
+
+<header class="mast wrap">
+  <div class="mast-kicker">Personnel Files — All Wrestlers</div>
+  <div class="mast-title">
+    <span class="mast-logo" aria-hidden="true">WRESTLE MANAGER</span>
+    <h1>選手名鑑</h1>
+  </div>
+  <p class="mast-lede">女子プロレス団体経営シミュレーション「WRESTLE MANAGER」に登場する選手の全員名簿。能力で並べ替え、スタイルや出身作品でまとめて見比べられます。選手を押すと詳しいプロフィールと登場作品が開きます。</p>
+  <ul class="mast-facts" id="facts"></ul>
+</header>
+
+<div class="bar">
+  <div class="wrap bar-in">
+    <div class="bar-row">
+      <div class="ctl">
+        <span class="ctl-label" id="viewLabel">表示</span>
+        <div class="seg" id="view" role="group" aria-labelledby="viewLabel">
+          <button type="button" data-v="grid">一覧</button>
+          <button type="button" data-v="cards">紹介文つき</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <label class="ctl-label" for="sort">並び</label>
+        <select class="field" id="sort"></select>
+        <button type="button" class="dir" id="dir"></button>
+      </div>
+      <div class="ctl">
+        <span class="ctl-label" id="groupLabel">まとめ</span>
+        <div class="seg" id="group" role="group" aria-labelledby="groupLabel">
+          <button type="button" data-v="none">なし</button>
+          <button type="button" data-v="style">スタイル</button>
+          <button type="button" data-v="series">出身作品</button>
+        </div>
+      </div>
+      <input class="field search" id="q" type="search" placeholder="名前・ふりがな・ローマ字で探す" aria-label="選手を名前で探す" autocomplete="off">
+    </div>
+    <div class="bar-row">
+      <div class="chips" id="styles" role="group" aria-label="スタイルで絞り込む"></div>
+      <span class="chips-sep" aria-hidden="true"></span>
+      <div class="chips" id="roles" role="group" aria-label="ロールで絞り込む"></div>
+      <select class="field" id="trait" aria-label="特性で絞り込む"></select>
+      <span class="count" id="count" aria-live="polite"></span>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="roster" id="roster"></div>
+</main>
+
+<footer class="foot wrap">
+  <p class="legend" id="legend"></p>
+  <p>能力値は各選手の能力基準値。OVRは5能力の平均。潜在能力は機密事項のため記載しない。</p>
+  <p id="sourceNote"></p>
+</footer>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="sheetName">
+    <div class="sheet-head">
+      <span class="sheet-no" id="sheetNo"></span>
+      <span class="sheet-pos" id="sheetPos"></span>
+      <div class="sheet-nav">
+        <button type="button" class="icon-btn" id="prev" aria-label="前の選手" title="前の選手(←)">&#8592;</button>
+        <button type="button" class="icon-btn" id="next" aria-label="次の選手" title="次の選手(→)">&#8594;</button>
+        <button type="button" class="icon-btn" id="close" aria-label="閉じる" title="閉じる(Esc)">&#10005;</button>
+      </div>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const DATA = {"fighters":[{"id":1,"name":"阿武隈塔子","kana":"あぶくま とうこ","roman":"Toko Abukuma","sortKana":"あぶくまとうこ","h":173,"style":"Grappler","role":"Babyface","pw":95,"sp":73,"te":71,"st":81,"mn":80,"ovr":80,"traits":["リーダー気質","人望","威圧感","引き出し上手","ガラスの身体"],"profile":"抜きん出た体格とパワーで粕田市内最強と謳われた伝説のレスラー。面倒見が良く人望も厚い。パワーボムと強烈なラリアットを武器に圧倒的な存在感で対戦相手を飲み込む。","img":"upper_abukuma_t.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/10558347","site":"pixiv","title":"更衣室での一幕","date":"2010-05-09"},{"url":"https://www.pixiv.net/artworks/29429091","site":"pixiv","title":"決戦！阿武隈さん対富岡さん①","date":"2012-08-16"}]},{"id":2,"name":"富岡加奈子","kana":"とみおか かなこ","roman":"Kanako Tomioka","sortKana":"とみおかかなこ","h":168,"style":"Grappler","role":"Babyface","pw":90,"sp":68,"te":70,"st":76,"mn":83,"ovr":77,"traits":["努力家","頑丈さ","闘志","負けず嫌い"],"profile":"幼少期は病弱だったが、不屈の精神でリハビリを乗り越えパワーレスラーへと変貌した鉄腕令嬢。メイドの高階とともに鍛錬を重ね、市内有数のパワーファイターに成長した。","img":"upper_tomioka_k.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/10082133","site":"pixiv","title":"はじまりますた","date":"2010-04-17"},{"url":"https://www.pixiv.net/artworks/14304410","site":"pixiv","title":"真琴さん対加奈子さん①","date":"2010-11-02"}]},{"id":3,"name":"澤出みずき","kana":"さわいで みずき","roman":"Mizuki Sawaide","sortKana":"さわいでみずき","h":158,"style":"Allround","role":"Neutral","pw":73,"sp":78,"te":73,"st":73,"mn":72,"ovr":74,"traits":["引き出し上手","早熟","適応力"],"profile":"やさしげな雰囲気で目立たない印象だが、確かな力を秘める隠れた実力者。家庭の事情で転校して粕田学園を離れた。どんな相手にも柔軟に対応できる器用さが最大の武器で、試合展開を読む力にも優れる。","img":"upper_sawade_m.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/13431244","site":"pixiv","title":"澤出さんと橘さん","date":"2010-09-23"},{"url":"https://www.pixiv.net/artworks/15887779","site":"pixiv","title":"澤出さんvs生駒さん①","date":"2011-01-12"}]},{"id":4,"name":"高津小春","kana":"たかつ こはる","roman":"Koharu Takatsu","sortKana":"たかつこはる","h":161,"style":"Allround","role":"Babyface","pw":73,"sp":75,"te":47,"st":79,"mn":91,"ovr":73,"traits":["晩成","番狂わせ体質","負けず嫌い","闘志","反骨心"],"profile":"剣道仕込みの闘志で格上にも決して引かない負けず嫌い。技術は粗削りだがメンタルの強さは粕田随一。試合終盤に底力を発揮するタイプで、何度打ちのめされても立ち上がる不屈の精神は観客の心を掴む。将来の技術向上次第では大化けする可能性を秘めた逸材。","img":"upper_takatsu_k.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/10351706","site":"pixiv","title":"剣道部の高津さんが賭け試合に乗り込んだようです","date":"2010-04-30"},{"url":"https://www.pixiv.net/artworks/19489243","site":"pixiv","title":"体育倉庫呼び出しマッチ①","date":"2011-06-08"}]},{"id":5,"name":"深町真琴","kana":"ふかまち まこと","roman":"Makoto Fukamachi","sortKana":"ふかまちまこと","h":160,"style":"Aerial","role":"Babyface","pw":58,"sp":91,"te":62,"st":85,"mn":63,"ovr":72,"traits":["努力家","華","鉄人"],"profile":"陸上部の快足女子。ストイックに鍛え上げた脚力から繰り出すスピードと蹴り技で相手を翻弄する実力者。短距離走で鍛えた爆発的な加速力はリングでも遺憾なく発揮される。飛び技・蹴り技の切れ味は一級品。","img":"upper_fukamachi_m.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/10082133","site":"pixiv","title":"はじまりますた","date":"2010-04-17"},{"url":"https://www.pixiv.net/artworks/14304410","site":"pixiv","title":"真琴さん対加奈子さん①","date":"2010-11-02"}]},{"id":6,"name":"副沢たまき","kana":"ふくざわ たまき","roman":"Tamaki Fukuzawa","sortKana":"ふくざわたまき","h":161,"style":"Allround","role":"Neutral","pw":58,"sp":72,"te":74,"st":65,"mn":80,"ovr":70,"traits":["ムードメーカー","早熟","破天荒"],"profile":"器用さが光る万能型マイペース娘。やる気を出した時の対応力は目を見張るものがあるが、普段はのんびりペース。中学時代は生駒のクラスメート。なにやら因縁がある様子。","img":"upper_soezawa_t.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/12207619","site":"pixiv","title":"付き人の子が副ちゃんに挑戦するようです","date":"2010-07-29"}]},{"id":7,"name":"高階まさみ","kana":"たかしな まさみ","roman":"Masami Takashina","sortKana":"たかしなまさみ","h":161,"style":"Submission","role":"Babyface","pw":58,"sp":62,"te":73,"st":63,"mn":66,"ovr":64,"traits":["引き出し上手","忠誠心"],"profile":"富岡家の専属メイドにして忠実な護衛。関節技のセンスに光るものがあり、お嬢様を支えながら地道に力をつけている。お嬢様を守るためなら自らの身を盾にすることも厭わない献身的な性格。","img":"upper_takashina_m.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/10082133","site":"pixiv","title":"はじまりますた","date":"2010-04-17"},{"url":"https://www.pixiv.net/artworks/12207619","site":"pixiv","title":"付き人の子が副ちゃんに挑戦するようです","date":"2010-07-29"}]},{"id":8,"name":"林真尋","kana":"はやし まひろ","roman":"Mahiro Hayashi","sortKana":"はやしまひろ","h":174,"style":"Striker","role":"Neutral","pw":71,"sp":73,"te":43,"st":61,"mn":52,"ovr":60,"traits":["負けず嫌い"],"profile":"バスケ部所属の長身ファイター。運動部の仲間たちとも交流がある。打撃に光るものはあるが技術面に課題を残す。174cmの長身から繰り出すリーチの長い打撃は脅威だが、グラウンドに持ち込まれると苦戦する傾向がある。","img":"upper_hayashi_m.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/13958233","site":"pixiv","title":"大河内さんと林さん","date":"2010-10-17"}]},{"id":9,"name":"宇田川里奈","kana":"うたがわ りな","roman":"Rina Udagawa","sortKana":"うたがわりな","h":167,"style":"Aerial","role":"Neutral","pw":51,"sp":62,"te":54,"st":63,"mn":48,"ovr":56,"traits":["ファンサービス"],"profile":"おしゃれに目覚めた自称カワイイ系女子。練習より美容にストイックだが、調子が良い時は相手を完封することも。試合では意外にもスピードを活かした巧みな立ち回りを見せることがあり、侮ると痛い目に遭う。","img":"upper_udagawa_r.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[{"url":"https://www.pixiv.net/artworks/39608221","site":"pixiv","title":"地下プロレス興行・変則タッグマッチ","date":"2013-11-07"},{"url":"https://www.pixiv.net/artworks/55781984","site":"pixiv","title":"宇田川さんとたのしいボクシング","date":"2016-03-12"}]},{"id":11,"name":"橘玲美","kana":"たちばな れいみ","roman":"Reimi Tachibana","sortKana":"たちばなれいみ","h":171,"style":"Submission","role":"Heel","pw":71,"sp":73,"te":91,"st":75,"mn":74,"ovr":77,"traits":["ヒール適性","威圧感","早熟","華"],"profile":"高校生としては大人びた印象の女子高生。嗜虐的な一面を持ち、関節技と絞め技で相手を追い詰めるスタイルを好む危険な実力者。看護科で学んだ知識をプロレスに持ち込んだ独自のサブミッション技術は市内トップクラスで、一度捕まれば脱出は至難の業。","img":"upper_tachibana_r.webp","series":"学園女子プロレス","aff":"哲玖国際高校","works":[{"url":"https://www.pixiv.net/artworks/10863603","site":"pixiv","title":"高津さんが再び賭けプロレス会場へ向かいました","date":"2010-05-24"},{"url":"https://www.pixiv.net/artworks/17576130","site":"pixiv","title":"大河内さんＶＳ橘さん①","date":"2011-03-23"}]},{"id":12,"name":"生駒エリカ","kana":"いこまえりか","roman":"Erika Ikoma","sortKana":"いこまえりか","h":153,"style":"Brawler","role":"Heel","pw":78,"sp":71,"te":55,"st":82,"mn":82,"ovr":74,"traits":["負けず嫌い","闘志","鉄人","人望","反骨心"],"profile":"小柄ながら体格に似合わぬパワーと不屈の闘志で相手をねじ伏せる。153cmの小さな体に宿る闘志は誰よりも激しく、タフネスと根性で大型選手にも真っ向から立ち向かう。チームメイトからの信頼も厚く、頼もしいリーダー格。","img":"upper_ikoma_e.webp","series":"学園女子プロレス","aff":"哲玖国際高校","works":[{"url":"https://www.pixiv.net/artworks/10863603","site":"pixiv","title":"高津さんが再び賭けプロレス会場へ向かいました","date":"2010-05-24"}]},{"id":13,"name":"堂前ユキ","kana":"どうまえ ゆき","roman":"Yuki Domae","sortKana":"どうまえゆき","h":163,"style":"Striker","role":"Neutral","pw":81,"sp":84,"te":43,"st":64,"mn":73,"ovr":69,"traits":["破天荒"],"profile":"口数は極めて少ない打撃戦の申し子。一撃必殺を理想とする戦闘狂。鍛え抜かれた拳足から繰り出される打撃はスピードとパワーを兼ね備え、試合が始まれば相手を容赦なく打ち抜く。寡黙ゆえに何を考えているか掴みにくく、対戦相手に不気味な圧を与える。","img":"upper_domae_y.webp","series":"学園女子プロレス","aff":"哲玖国際高校","works":[{"url":"https://www.pixiv.net/artworks/10351706","site":"pixiv","title":"剣道部の高津さんが賭け試合に乗り込んだようです","date":"2010-04-30"},{"url":"https://www.pixiv.net/artworks/12812424","site":"pixiv","title":"大会開始。岸さん対堂前さん","date":"2010-08-25"}]},{"id":14,"name":"黒江舞","kana":"くろえ まい","roman":"Mai Kuroe","sortKana":"くろえまい","h":159,"style":"Submission","role":"Heel","pw":48,"sp":52,"te":76,"st":58,"mn":67,"ovr":60,"traits":["ヒール適性","早熟"],"profile":"地下プロレスで卑怯ファイトに目覚めた小心者の優等生。リングに上がるとS性が豹変する二面性の持ち主。普段はおとなしく控えめな生徒だが、リングに上がると目つきが変わりサディスティックな関節技を執拗に仕掛ける。その変貌ぶりは見る者をゾッとさせるが妙な人気がある。","img":"upper_kuroe_m.webp","series":"学園女子プロレス","aff":"哲玖国際高校","works":[{"url":"https://www.pixiv.net/artworks/47956196","site":"pixiv","title":"大会後半戦＋川野辺・岸組ＶＳ楠木・黒江組","date":"2015-01-02"}]},{"id":15,"name":"楠木なぎさ","kana":"くすのき なぎさ","roman":"Nagisa Kusunoki","sortKana":"くすのきなぎさ","h":178,"style":"Brawler","role":"Babyface","pw":79,"sp":65,"te":21,"st":66,"mn":62,"ovr":59,"traits":["威圧感"],"profile":"哲玖高校一のパワーを誇る重戦車。生駒と橘を慕う忠義者だが、身内以外には非常に冷淡で攻撃的。178cmの長身と圧倒的なパワーで相手を力任せにねじ伏せる。","img":"upper_kusunoki_n.webp","series":"学園女子プロレス","aff":"哲玖国際高校","works":[{"url":"https://www.pixiv.net/artworks/47956196","site":"pixiv","title":"大会後半戦＋川野辺・岸組ＶＳ楠木・黒江組","date":"2015-01-02"}]},{"id":16,"name":"大河内紗代子","kana":"おおこうち さよこ","roman":"Sayoko Okochi","sortKana":"おおこうちさよこ","h":164,"style":"Grappler","role":"Heel","pw":93,"sp":76,"te":66,"st":69,"mn":77,"ovr":76,"traits":["リーダー気質","威圧感","華","野心"],"profile":"名家・大河内家の令嬢にして摺出川女学院を支配する女帝。高いカリスマ性と冷酷さで学園に君臨する。全国から実力者を編入させる権力と資金力を持ち、自らも卓越した身体能力で頂点に立つ。その支配欲と野心は留まるところを知らず、粕田市全体の覇権をも狙う。","img":"upper_okochi_s.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/13958233","site":"pixiv","title":"大河内さんと林さん","date":"2010-10-17"},{"url":"https://www.pixiv.net/artworks/17576130","site":"pixiv","title":"大河内さんＶＳ橘さん①","date":"2011-03-23"}]},{"id":17,"name":"川野辺菜穂子","kana":"かわのべ なおこ","roman":"Nahoko Kawanobe","sortKana":"かわのべなおこ","h":168,"style":"Aerial","role":"Babyface","pw":66,"sp":80,"te":69,"st":71,"mn":76,"ovr":72,"traits":["ライバル体質","名勝負製造機","華","負けず嫌い"],"profile":"強敵との対戦が多く敗戦続きの印象だが、大河内を破った実績を持つ名勝負製造機。ピアノの腕前はプロ級。どんな相手とも噛み合う天性の試合センスを持ち、彼女の試合は常に見応えがある。繊細な感性と華やかな存在感で、勝敗に関わらずファンの心を掴む稀有な存在。","img":"upper_kawanobe_n.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/11625454","site":"pixiv","title":"タッグマッチで１本勝負①","date":"2010-07-01"},{"url":"https://www.pixiv.net/artworks/20066296","site":"pixiv","title":"大河内さんもだんだん元気を取り戻してきたようだぞ","date":"2011-07-03"}]},{"id":18,"name":"出羽鷹子","kana":"でわ たかこ","roman":"Takako Dewa","sortKana":"でわたかこ","h":184,"style":"Grappler","role":"Heel","pw":82,"sp":71,"te":68,"st":78,"mn":80,"ovr":76,"traits":["威圧感","適応力"],"profile":"大河内が全国から呼び寄せた編入組の一角。市内屈指の体格とパワーは阿武隈にも引けを取らない。184cmの長身から繰り出す豪快なパワー殺法が武器。試合中に相手のスタイルに合わせた戦術変更もこなせる器用さを併せ持つ。","img":"upper_dewa_t.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/18075023","site":"pixiv","title":"ヒール対決の影で①","date":"2011-04-10"},{"url":"https://www.pixiv.net/artworks/64377553","site":"pixiv","title":"決勝戦前日","date":"2017-08-12"}]},{"id":19,"name":"四条あずさ","kana":"しじょう あずさ","roman":"Azusa Shijo","sortKana":"しじょうあずさ","h":163,"style":"Allround","role":"Neutral","pw":64,"sp":68,"te":62,"st":67,"mn":62,"ovr":65,"traits":["忠誠心","適応力"],"profile":"大河内軍団の実力者の中では珍しい一般入学組。心情的にも大河内に心酔する忠実な信奉者。万能型のオールラウンダーで目立った弱点はないが、決定打に欠ける部分がある。大河内への忠誠心は本物で、命じられれば捨て駒も厭わない覚悟を持つ。","img":"upper_shijo_a.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/39608221","site":"pixiv","title":"地下プロレス興行・変則タッグマッチ","date":"2013-11-07"},{"url":"https://www.pixiv.net/artworks/54672374","site":"pixiv","title":"橘さん拉致監禁マッチ","date":"2016-01-11"}]},{"id":20,"name":"岸ゆみえ","kana":"きし ゆみえ","roman":"Yumie Kishi","sortKana":"きしゆみえ","h":155,"style":"Submission","role":"Babyface","pw":65,"sp":71,"te":78,"st":68,"mn":73,"ovr":71,"traits":["名勝負製造機","引き出し上手"],"profile":"冷静沈着な戦術眼で相手を観察して戦うデータ至上主義者。身体能力には不安があるが技術で補う。相手の癖を瞬時に見抜く観察眼は試合を重ねるごとに磨かれている。努力を積み重ねる姿勢は衰えず、長期的な成長が期待される知性派。","img":"upper_kishi_y.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/11625454","site":"pixiv","title":"タッグマッチで１本勝負①","date":"2010-07-01"}]},{"id":21,"name":"木ノ内幸音","kana":"きのうち さちね","roman":"Sachine Kinouchi","sortKana":"きのうちさちね","h":164,"style":"Allround","role":"Babyface","pw":66,"sp":53,"te":53,"st":68,"mn":67,"ovr":61,"traits":["ヒール適性","ムードメーカー","華"],"profile":"橘玲美に憧れてヒールを目指す天然娘。声が大きくてうるさい。技術は拙いがタフネスは侮れない。ヒールを名乗るわりには素の明るさが抑えられず、観客を楽しませるムードメーカー的存在。華のある振る舞いで独自のファン層を獲得しつつある。","img":"upper_kinouchi_y.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/38133726","site":"pixiv","title":"世界で一番ヒールになりたい","date":"2013-08-28"},{"url":"https://www.pixiv.net/artworks/44972219","site":"pixiv","title":"木ノ内さんが悩んでいるようです","date":"2014-07-27"}]},{"id":22,"name":"美濃山まりな","kana":"みのやま まりな","roman":"Marina Minoyama","sortKana":"みのやままりな","h":173,"style":"Brawler","role":"Neutral","pw":80,"sp":38,"te":48,"st":59,"mn":48,"ovr":55,"traits":["ヒール適性"],"profile":"大河内直属親衛隊。巨体で相手を押しつぶすラフファイトが持ち味の重量級ブロウラー。その体格を活かしたパワフルな攻撃は、単純だが破壊力は抜群。","img":"upper_minoyama_m.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[]},{"id":23,"name":"早見知子","kana":"はやみ ともこ","roman":"Tomoko Hayami","sortKana":"はやみともこ","h":162,"style":"Striker","role":"Heel","pw":51,"sp":43,"te":42,"st":51,"mn":41,"ovr":46,"traits":["適応力"],"profile":"大河内の取り巻き。昔空手をかじっていたらしいが、全体的な能力は低い。","img":"upper_hayami_t.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/12850158","site":"pixiv","title":"川野辺さんはイジメッ子の一人と当たってしまったようです","date":"2010-08-27"},{"url":"https://www.pixiv.net/artworks/15464661","site":"pixiv","title":"体育倉庫の特設リング","date":"2010-12-26"}]},{"id":24,"name":"園部梨花","kana":"そのべ りか","roman":"Rika Sonobe","sortKana":"そのべりか","h":158,"style":"Allround","role":"Heel","pw":46,"sp":48,"te":41,"st":42,"mn":43,"ovr":44,"traits":[],"profile":"大河内の取り巻きのリーダー気取り。実力は伴わないが、数の力で威張り散らす小物。","img":"upper_sonobe_r.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/15464661","site":"pixiv","title":"体育倉庫の特設リング","date":"2010-12-26"}]},{"id":25,"name":"石戸谷なつき","kana":"いしどや なつき","roman":"Natsuki Ishitoya","sortKana":"いしどやなつき","h":164,"style":"Brawler","role":"Heel","pw":61,"sp":31,"te":34,"st":45,"mn":38,"ovr":42,"traits":["早熟"],"profile":"大河内の取り巻き。パワーはありそうだが頭は悪そう。鈍重なブロウラー。","img":"upper_ishitoya_n.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[{"url":"https://www.pixiv.net/artworks/15464661","site":"pixiv","title":"体育倉庫の特設リング","date":"2010-12-26"}]},{"id":26,"name":"宮守なつめ","kana":"みやもり なつめ","roman":"Natsume Miyamori","sortKana":"みやもりなつめ","h":165,"style":"Allround","role":"Babyface","pw":62,"sp":72,"te":58,"st":66,"mn":63,"ovr":64,"traits":["努力家","早熟"],"profile":"廃校寸前の元砥石川高校出身。バランス重視の堅実なファイトで確かな実力を見せる。母校の廃校を経験した苦い思い出をバネに、早くから自立心を鍛えてきた。安定感のある試合運びと粘り強さで、どんな相手にも一定以上の戦いができる信頼のおける選手。","img":"upper_miyamori_n.webp","series":"学園女子プロレス","aff":"元砥石川高校","works":[{"url":"https://www.pixiv.net/artworks/41309010","site":"pixiv","title":"壮絶！宮守さん対橘さん","date":"2014-01-31"},{"url":"https://www.pixiv.net/artworks/46498621","site":"pixiv","title":"橘・生駒ペアVS宮守・八重樫ペア","date":"2014-10-11"}]},{"id":27,"name":"八重樫舞","kana":"やえがし まい","roman":"Mai Yaegashi","sortKana":"やえがしまい","h":167,"style":"Striker","role":"Babyface","pw":71,"sp":63,"te":42,"st":66,"mn":51,"ovr":59,"traits":["鉄人"],"profile":"元砥石川高校出身。身体能力に物を言わせるパワー＆スピードタイプ。タフネスにも定評がある。鉄人と呼ぶにふさわしい頑健な肉体で怪我知らずのタフさが最大の武器。技術面の課題を克服できれば、トップ選手の仲間入りも夢ではないポテンシャルを秘める。","img":"upper_yaegashi_m.webp","series":"学園女子プロレス","aff":"元砥石川高校","works":[{"url":"https://www.pixiv.net/artworks/46498621","site":"pixiv","title":"橘・生駒ペアVS宮守・八重樫ペア","date":"2014-10-11"}]},{"id":28,"name":"岩屋みら","kana":"いわや みら","roman":"Mira Iwaya","sortKana":"いわやみら","h":169,"style":"Brawler","role":"Neutral","pw":82,"sp":74,"te":62,"st":55,"mn":61,"ovr":67,"traits":["ガラスの身体","早熟","鉄人"],"profile":"元哲玖四天王の一人で女子大生地下レスラー。パワーとスピードを兼ね備えるが、スタミナに不安を抱える。全盛期の爆発力は市内でも屈指だったが、怪我がちな体質が最大の弱点。","img":"upper_iwaya_m.webp","series":"学園女子プロレス","aff":"大学生","works":[{"url":"https://www.pixiv.net/artworks/43212038","site":"pixiv","title":"バチバチ！高津さん対岩屋さん①","date":"2014-04-30"}]},{"id":29,"name":"相沢未来","kana":"あいざわ みらい","roman":"Mirai Aizawa","sortKana":"あいざわみらい","h":162,"style":"Allround","role":"Babyface","pw":73,"sp":74,"te":62,"st":78,"mn":74,"ovr":72,"traits":["人望","鉄人"],"profile":"無名校・奥山川を県大会決勝まで導いたプロレス部主将。膝のケガを乗り越えた不屈のキャプテン。逆境に立たされるほど力を発揮するタイプで、チームメイトからの信頼は絶大。","img":"upper_aizawa_m.webp","series":"女子高生プロレス","aff":"奥山川高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/676737","site":"fanbox","title":"県大会決勝 奥山川高校　対　岬浜女子高校","date":"2019-11-26"}]},{"id":30,"name":"松川杏樹","kana":"まつかわ あんじゅ","roman":"Anju Matsukawa","sortKana":"まつかわあんじゅ","h":174,"style":"Grappler","role":"Neutral","pw":70,"sp":74,"te":68,"st":72,"mn":71,"ovr":71,"traits":["晩成","鉄人"],"profile":"奥山川高校に転校してきた174cmの大型選手。ムードメーカー気質で、チームの全国大会出場の夢を後押しする。恵まれた体格を活かしたグラップリングが武器で、型破りな発想で相手を翻弄することもある。陽気な性格でチームの雰囲気を明るくする欠かせない存在。","img":"upper_matsukawa_a.webp","series":"女子高生プロレス","aff":"奥山川高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/676737","site":"fanbox","title":"県大会決勝 奥山川高校　対　岬浜女子高校","date":"2019-11-26"}]},{"id":31,"name":"平松かなみ","kana":"ひらまつ かなみ","roman":"Kanami Hiramatsu","sortKana":"ひらまつかなみ","h":158,"style":"Submission","role":"Babyface","pw":61,"sp":67,"te":76,"st":64,"mn":72,"ovr":68,"traits":["努力家","適応力"],"profile":"奥山川プロレス部の副キャプテン。友人を元気づけるため始めた部活で競技の楽しさに目覚めた。関節技を中心とした技巧派で、晩成型として将来の成長が最も期待される選手の一人。控えめな性格だが、いざ試合になると粘り強さを発揮する。","img":"upper_hiramatsu_k.webp","series":"女子高生プロレス","aff":"奥山川高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/676737","site":"fanbox","title":"県大会決勝 奥山川高校　対　岬浜女子高校","date":"2019-11-26"}]},{"id":32,"name":"双里明日香","kana":"そうり あすか","roman":"Asuka Sori","sortKana":"そうりあすか","h":161,"style":"Submission","role":"Babyface","pw":54,"sp":61,"te":68,"st":67,"mn":60,"ovr":62,"traits":["負けず嫌い"],"profile":"小学生時代は注目のサブミッション使いだったが伸び悩んだ過去を持つ。奥山川で情熱を取り戻した1年生。かつての天才少女が挫折を乗り越えて再起を図る姿は、チームメイトにも良い刺激を与えている。負けず嫌いの性格が闘争心に火をつけた時、その技術は確かな輝きを見せる。","img":"upper_futasato_a.webp","series":"女子高生プロレス","aff":"奥山川高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/676737","site":"fanbox","title":"県大会決勝 奥山川高校　対　岬浜女子高校","date":"2019-11-26"}]},{"id":33,"name":"梅ヶ丘みのり","kana":"うめがおか みのり","roman":"Minori Umegaoka","sortKana":"うめがおかみのり","h":163,"style":"Allround","role":"Babyface","pw":70,"sp":68,"te":72,"st":75,"mn":80,"ovr":73,"traits":["リーダー気質","負けず嫌い"],"profile":"名門・岬浜女子の主将。おしとやかな容貌ながら努力で掴んだ実力で全国制覇を目指す。抜きん出た才能はないが、あらゆる面でハイレベルにまとまった総合力の高さが武器。チームを率いるリーダーシップにも優れ、部員たちから深い敬意を集めている。","img":"upper_umegaoka_m.webp","series":"女子高生プロレス","aff":"岬浜女子高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/676737","site":"fanbox","title":"県大会決勝 奥山川高校　対　岬浜女子高校","date":"2019-11-26"}]},{"id":34,"name":"北畠吉乃","kana":"きたばたけ よしの","roman":"Yoshino Kitabatake","sortKana":"きたばたけよしの","h":162,"style":"Submission","role":"Neutral","pw":68,"sp":72,"te":84,"st":72,"mn":69,"ovr":73,"traits":["破天荒","早熟","努力家"],"profile":"1年時からレギュラーの才能の塊。特にグラウンド技術に優れる岬浜の副将。梅ヶ丘を深く信頼している。早熟型の天才肌で、技術面では上級生すら凌ぐセンスの持ち主。型破りな閃きで試合を動かす反面、安定感に欠ける一面もあるが、その潜在能力は計り知れない。","img":"upper_kitabatake_y.webp","series":"女子高生プロレス","aff":"岬浜女子高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/676737","site":"fanbox","title":"県大会決勝 奥山川高校　対　岬浜女子高校","date":"2019-11-26"}]},{"id":35,"name":"上野原弥生","kana":"うえのはら やよい","roman":"Yayoi Uenohara","sortKana":"うえのはらやよい","h":179,"style":"Grappler","role":"Neutral","pw":82,"sp":58,"te":63,"st":68,"mn":58,"ovr":66,"traits":["頑丈さ"],"profile":"中学から急成長し特待生で岬浜に入学した大型1年生。「岬浜のツインタワー」の一角を担う将来の逸材。179cmの恵まれた体格を活かしたパワーグラップリングが武器で、頑丈さも折り紙付き。まだ粗削りだが成長の余地は大きく、名門校の未来を担う存在として期待される。","img":"upper_uenohara_y.webp","series":"女子高生プロレス","aff":"岬浜女子高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/676737","site":"fanbox","title":"県大会決勝 奥山川高校　対　岬浜女子高校","date":"2019-11-26"}]},{"id":36,"name":"真鍋綾乃","kana":"まなべ あやの","roman":"Ayano Manabe","sortKana":"まなべあやの","h":181,"style":"Grappler","role":"Neutral","pw":80,"sp":54,"te":65,"st":63,"mn":60,"ovr":64,"traits":["頑丈さ"],"profile":"181cmの長身を誇り上野原と並ぶ「岬浜のツインタワー」。格闘技仕込みの実践的テクで次期主将候補。上野原との二枚看板として岬浜の最前線を支えるパワーグラップラー。冷静な試合運びと堅実な防御力で安定した試合ができる信頼度の高い選手。","img":"upper_manabe_a.webp","series":"女子高生プロレス","aff":"岬浜女子高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/676737","site":"fanbox","title":"県大会決勝 奥山川高校　対　岬浜女子高校","date":"2019-11-26"}]},{"id":37,"name":"白銀麗子","kana":"しろがね れいこ","roman":"Reiko Shirogane","sortKana":"しろがねれいこ","h":165,"style":"Allround","role":"Babyface","pw":74,"sp":81,"te":79,"st":79,"mn":74,"ovr":77,"traits":["不屈","華","頑丈さ"],"profile":"名門・姫宮女子の主将。「柔の白銀」「姫宮の白雪姫」と呼ばれる容姿端麗な人気レスラー。バランスの取れた高い総合力と、どんな窮地でも折れない不屈の精神力が最大の武器。優雅で華麗な試合スタイルは多くのファンを魅了し、全国的にも知名度の高いトップレスラー。","img":"upper_shirogane_r.webp","series":"女子高生プロレス","aff":"姫宮女子学院","works":[{"url":"https://takoyaki.fanbox.cc/posts/1214834","site":"fanbox","title":"お嬢様高校VSギャル高校【地区大会編】","date":"2020-07-17"},{"url":"https://takoyaki.fanbox.cc/posts/2056683","site":"fanbox","title":"【催眠アプリ戦】白銀麗子VS観音崎せりか","date":"2021-04-10"}]},{"id":38,"name":"芝彩音","kana":"しば あやね","roman":"Ayane Shiba","sortKana":"しばあやね","h":168,"style":"Grappler","role":"Babyface","pw":88,"sp":64,"te":67,"st":78,"mn":76,"ovr":75,"traits":["華","闘志"],"profile":"姫宮の副主将にして「剛の芝」の異名を持つ二枚看板の一角。お嬢様揃いの中でも一番のお嬢様。品の良い立ち居振る舞いからは想像できない圧倒的なパワーと組み技で相手をねじ伏せる。白銀とは対照的な剛のスタイルで、互いを補い合う姫宮の屋台骨。","img":"upper_shiba_a.webp","series":"女子高生プロレス","aff":"姫宮女子学院","works":[{"url":"https://takoyaki.fanbox.cc/posts/1214834","site":"fanbox","title":"お嬢様高校VSギャル高校【地区大会編】","date":"2020-07-17"}]},{"id":39,"name":"神谷沙奈絵","kana":"かみや さなえ","roman":"Sanae Kamiya","sortKana":"かみやさなえ","h":161,"style":"Striker","role":"Neutral","pw":63,"sp":76,"te":64,"st":65,"mn":52,"ovr":64,"traits":["忠誠心"],"profile":"キレのある打撃コンビネーションに定評がある寡黙な2年生。次期キャプテンと目される実力者。試合中は冷静沈着だが、一度スイッチが入ると容赦のないスピードで相手を追い込む。次世代の姫宮を牽引する逸材。","img":"upper_kamiya_s.webp","series":"女子高生プロレス","aff":"姫宮女子学院","works":[{"url":"https://takoyaki.fanbox.cc/posts/1214834","site":"fanbox","title":"お嬢様高校VSギャル高校【地区大会編】","date":"2020-07-17"}]},{"id":40,"name":"高輪まみ","kana":"たかなわ まみ","roman":"Mami Takanawa","sortKana":"たかなわまみ","h":149,"style":"Allround","role":"Babyface","pw":51,"sp":67,"te":54,"st":71,"mn":71,"ovr":63,"traits":["頑丈さ"],"profile":"小柄だがタフネスとスタミナで後半も攻め手を緩めない有望株。1年生からレギュラーを掴んだ努力家。149cmと最小クラスの体格だが、粘りで大型選手にも食らいつく姿は観客の応援を集める。地道な努力を積み重ねるタイプで、着実に実力を伸ばしている。","img":"upper_takanawa_m.webp","series":"女子高生プロレス","aff":"姫宮女子学院","works":[{"url":"https://takoyaki.fanbox.cc/posts/1214834","site":"fanbox","title":"お嬢様高校VSギャル高校【地区大会編】","date":"2020-07-17"}]},{"id":41,"name":"根岸亞里亞","kana":"ねぎし ありあ","roman":"Aria Negishi","sortKana":"ねぎしありあ","h":163,"style":"Submission","role":"Heel","pw":68,"sp":73,"te":81,"st":71,"mn":71,"ovr":73,"traits":["ヒール適性","早熟"],"profile":"三津浜高校プロレス部のリーダー格。サブミッション技術は相当なもので、自由奔放な発想から繰り出す変則的な攻めは対策が難しい。ヒール寄りのスタイルだが本人は深く考えておらず、ただ好きに戦いたいだけの享楽主義者。","img":"upper_negishi_a.webp","series":"女子高生プロレス","aff":"三津浜高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/1214834","site":"fanbox","title":"お嬢様高校VSギャル高校【地区大会編】","date":"2020-07-17"}]},{"id":42,"name":"本郷真理子","kana":"ほんごう まりこ","roman":"Mariko Hongo","sortKana":"ほんごうまりこ","h":170,"style":"Grappler","role":"Heel","pw":88,"sp":67,"te":49,"st":66,"mn":71,"ovr":68,"traits":["ヒール適性","威圧感"],"profile":"三津浜の3年生。路上格闘の実戦経験も豊富で、ルール無用の喧嘩ファイトは得意中の得意。豪快なパワーグラップリングと場外乱闘を厭わないラフスタイルが持ち味。一見粗暴だが試合の組み立てには独自の勘所を持ち、ダーティな駆け引きにも長けている。","img":"upper_hongo_m.webp","series":"女子高生プロレス","aff":"三津浜高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/1214834","site":"fanbox","title":"お嬢様高校VSギャル高校【地区大会編】","date":"2020-07-17"}]},{"id":43,"name":"金沢文","kana":"かなざわ あや","roman":"Aya Kanazawa","sortKana":"かなざわあや","h":181,"style":"Grappler","role":"Neutral","pw":84,"sp":59,"te":48,"st":58,"mn":62,"ovr":62,"traits":["頑丈さ"],"profile":"三津浜随一の怪力を誇る2年生。頭の回転は鈍いがパワーは圧倒的。気の向くまま暴れる問題児。181cmの巨体から繰り出すパワームーブは圧巻で、掴まれたら最後逃れるのは至難の業。試合運びは大雑把だが、その破壊力だけで勝ちを拾えるほどの怪力は唯一無二。","img":"upper_kanazawa_f.webp","series":"女子高生プロレス","aff":"三津浜高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/1214834","site":"fanbox","title":"お嬢様高校VSギャル高校【地区大会編】","date":"2020-07-17"}]},{"id":44,"name":"福浦理乃","kana":"ふくうら りの","roman":"Rino Fukuura","sortKana":"ふくうらりの","h":153,"style":"Allround","role":"Heel","pw":46,"sp":53,"te":49,"st":44,"mn":43,"ovr":47,"traits":[],"profile":"三津浜の1年生レギュラー。腕力が売りだがまだまだ技術不足。伸びしろに期待がかかる発展途上の新人。","img":"upper_fukuura_r.webp","series":"女子高生プロレス","aff":"三津浜高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/1214834","site":"fanbox","title":"お嬢様高校VSギャル高校【地区大会編】","date":"2020-07-17"}]},{"id":45,"name":"高槻千歳","kana":"たかつき ちなつ","roman":"Chitose Takatsuki","sortKana":"たかつきちなつ","h":164,"style":"Allround","role":"Heel","pw":71,"sp":77,"te":79,"st":74,"mn":74,"ovr":75,"traits":["リーダー気質","華","野心"],"profile":"団地内プロレスのヒエラルキーのトップに座る支配者。井沢を執拗に攻撃し、恐怖政治で団地を支配する策略家。卓越した知性と狡猾さで相手の弱みを見抜き、心理戦で追い詰めてからリングでとどめを刺す。策略だけでなく正面からの戦いでも強い恐るべき敵。","img":"upper_takatsuki_c.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[{"url":"https://takoyaki.fanbox.cc/posts/1574509","site":"fanbox","title":"【団地妻プロレス】井沢さんと高槻さん【回想編】","date":"2020-11-22"}]},{"id":46,"name":"井沢遥","kana":"いざわ はるか","roman":"Haruka Izawa","sortKana":"いざわはるか","h":165,"style":"Submission","role":"Babyface","pw":68,"sp":73,"te":82,"st":64,"mn":77,"ovr":73,"traits":["不屈","名勝負製造機","引き出し上手","負けず嫌い"],"profile":"かつて団地の実力者として尊敬を集めたが、高槻の策略で地位と友人を失い孤立。それでも折れずに５年の雌伏の後に高槻を破り地位を回復した。相手の良さを引き出しながら戦う誠実なスタイルは多くの支持を集めている。","img":"upper_izawa_h.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[{"url":"https://takoyaki.fanbox.cc/posts/1574509","site":"fanbox","title":"【団地妻プロレス】井沢さんと高槻さん【回想編】","date":"2020-11-22"}]},{"id":47,"name":"斎藤麻衣","kana":"さいとう まい","roman":"Mai Saito","sortKana":"さいとうまい","h":156,"style":"Striker","role":"Neutral","pw":64,"sp":68,"te":76,"st":69,"mn":73,"ovr":70,"traits":["早熟"],"profile":"入居2年目ながら高い実力を示す若手の実力者。鋭い打撃を得意とする早熟型。若さに似合わぬ冷静な試合運びと確かな打撃技術で、短期間でトップクラスの実力を身につけた。早熟型ゆえに伸びしろが懸念されるが、現時点の実力は侮れない。","img":"upper_saito_m.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[]},{"id":48,"name":"菊池璃子","kana":"きくち りこ","roman":"Riko Kikuchi","sortKana":"きくちりこ","h":162,"style":"Striker","role":"Neutral","pw":74,"sp":76,"te":69,"st":71,"mn":78,"ovr":74,"traits":["負けず嫌い","適応力","闘志"],"profile":"粕田台団地に入居してきたちょっときつめの奥さん。前の住まいでは町内会プロレスの実力者。外には厳しく家では陽気。負けず嫌いの性格と適応力の高さで新しい環境にもすぐに溶け込んだ。打撃を軸にした攻撃的なスタイルで、闘志を前面に押し出す熱い試合を見せる。","img":"upper_kikuchi_r.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[{"url":"https://takoyaki.fanbox.cc/posts/1526739","site":"fanbox","title":"【団地妻プロレス】高橋さんVS菊地さん 導入編","date":"2020-11-01"}]},{"id":49,"name":"高橋まゆみ","kana":"たかはし まゆみ","roman":"Mayumi Takahashi","sortKana":"たかはしまゆみ","h":161,"style":"Allround","role":"Babyface","pw":66,"sp":70,"te":73,"st":68,"mn":75,"ovr":70,"traits":["ファンサービス","名勝負製造機","華"],"profile":"おっとりした育ちの良いお嬢様妻。井沢に師事しプロレスの基本から学び、着実に実力をつけている成長株。努力家で、師匠である井沢の教えを素直に吸収している。確実に成長を続けており、メンタルの強さは団地内でも屈指。","img":"upper_takahashi_ma.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[{"url":"https://takoyaki.fanbox.cc/posts/1526739","site":"fanbox","title":"【団地妻プロレス】高橋さんVS菊地さん 導入編","date":"2020-11-01"},{"url":"https://takoyaki.fanbox.cc/posts/1694193","site":"fanbox","title":"【団地妻プロレス】高橋さんVS相田さん","date":"2021-01-05"}]},{"id":50,"name":"相田萌","kana":"あいだ もえ","roman":"Moe Aida","sortKana":"あいだもえ","h":156,"style":"Allround","role":"Neutral","pw":64,"sp":63,"te":63,"st":67,"mn":55,"ovr":62,"traits":["ファンサービス","適応力"],"profile":"見た目も言動も若々しい甘え上手。かつての井沢の友人だが、高槻グループに鞍替えした世渡り上手。","img":"upper_aida_m.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[{"url":"https://takoyaki.fanbox.cc/posts/1694193","site":"fanbox","title":"【団地妻プロレス】高橋さんVS相田さん","date":"2021-01-05"}]},{"id":51,"name":"三橋ふみえ","kana":"みつはし ふみえ","roman":"Fumie Mitsuhashi","sortKana":"みつはしふみえ","h":172,"style":"Submission","role":"Neutral","pw":63,"sp":59,"te":81,"st":58,"mn":50,"ovr":62,"traits":["ヒール適性","ファンサービス"],"profile":"男性陣を味方につけレフェリーすら誘惑する魔性の女。相手の幸せな顔が苦痛で歪むのを見るのが趣味。サブミッション技術は確かで、反則すれすれの駆け引きで相手を翻弄する試合巧者。","img":"upper_mitsuhashi_f.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[{"url":"https://takoyaki.fanbox.cc/posts/1574498","site":"fanbox","title":"【団地妻プロレス】短編　阿部さんVS三橋さん【小品】","date":"2020-11-13"}]},{"id":52,"name":"西川ちあき","kana":"にしかわ ちあき","roman":"Chiaki Nishikawa","sortKana":"にしかわちあき","h":171,"style":"Striker","role":"Heel","pw":68,"sp":58,"te":48,"st":58,"mn":54,"ovr":57,"traits":[],"profile":"高槻の取り巻き。かつては井沢の友人だった。","img":"upper_nishikawa_c.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[{"url":"https://takoyaki.fanbox.cc/posts/1574509","site":"fanbox","title":"【団地妻プロレス】井沢さんと高槻さん【回想編】","date":"2020-11-22"}]},{"id":53,"name":"小森さなえ","kana":"こもり さなえ","roman":"Sanae Komori","sortKana":"こもりさなえ","h":164,"style":"Brawler","role":"Neutral","pw":68,"sp":48,"te":38,"st":58,"mn":60,"ovr":54,"traits":["ムードメーカー"],"profile":"年の割に落ち着きがないズボラ妻。でも夫婦仲は円満。パワーはあるがテクニックが追いつかない。","img":"upper_komori_s.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[]},{"id":54,"name":"阿部みのり","kana":"あべ みのり","roman":"Minori Abe","sortKana":"あべみのり","h":154,"style":"Allround","role":"Babyface","pw":43,"sp":40,"te":38,"st":48,"mn":50,"ovr":44,"traits":[],"profile":"どこにでもいる平凡なOL。運動は苦手だが、職場の人間関係の中で否応なくリングに立たされる。","img":"upper_abe_m.webp","series":"団地妻プロレス","aff":"粕田台団地","works":[{"url":"https://takoyaki.fanbox.cc/posts/1574498","site":"fanbox","title":"【団地妻プロレス】短編　阿部さんVS三橋さん【小品】","date":"2020-11-13"}]},{"id":55,"name":"大久保桃子","kana":"おおくぼ ももこ","roman":"Momoko Okubo","sortKana":"おおくぼももこ","h":163,"style":"Allround","role":"Babyface","pw":72,"sp":73,"te":74,"st":71,"mn":80,"ovr":74,"traits":["不屈","鉄人","頑丈さ"],"profile":"社長秘書としてスカウトされた才媛。美貌と実力で瞬く間に社内マドンナの座を獲得した。不屈の精神と鉄人のスタミナを兼ね備え、どんな劣勢からも逆転を狙える粘り強さが最大の武器。正統派のオールラウンドスタイルで正面から堂々と戦う姿勢が支持を集めている。","img":"upper_okubo_m.webp","series":"OLプロレス","aff":"OL","works":[{"url":"https://www.pixiv.net/artworks/59104946","site":"pixiv","title":"オトナなおねえさんと楽しいボクシング","date":"2016-09-21"},{"url":"https://www.pixiv.net/artworks/62003239","site":"pixiv","title":"OLプロレス（仁義なき女の戦い編","date":"2017-03-19"}]},{"id":56,"name":"片桐ありさ","kana":"かたぎり ありさ","roman":"Arisa Katagiri","sortKana":"かたぎりありさ","h":167,"style":"Submission","role":"Neutral","pw":69,"sp":68,"te":85,"st":67,"mn":76,"ovr":73,"traits":["ライバル体質","負けず嫌い"],"profile":"美人で仕事もできる経理課のお姉さん。社内プロレスで高い勝率を誇り、粘着質ないたぶりを好むサディスト。サブミッション技術を駆使して相手をじわじわと追い詰める試合運びが得意。","img":"upper_katagiri_a.webp","series":"OLプロレス","aff":"OL","works":[{"url":"https://takoyaki.fanbox.cc/posts/793133","site":"fanbox","title":"社員旅行でOLプロレス","date":"2020-02-01"},{"url":"https://takoyaki.fanbox.cc/posts/793134","site":"fanbox","title":"OLプロレス片桐さん対丹羽さん","date":"2020-02-02"}]},{"id":57,"name":"浅見里緒菜","kana":"あさみ りおな","roman":"Riona Asami","sortKana":"あさみりおな","h":158,"style":"Submission","role":"Heel","pw":60,"sp":58,"te":74,"st":61,"mn":68,"ovr":64,"traits":["リーダー気質","早熟","負けず嫌い","野心"],"profile":"元社内マドンナの美人受付嬢。大久保の登場で地位を脅かされた。策略で周囲を動かし、自分は安全な場所から指揮を執るタイプ。サブミッション技術はなかなかのもので、それにプラスしてリング外での政治力を武器に暗躍する。","img":"upper_asami_r.webp","series":"OLプロレス","aff":"OL","works":[{"url":"https://www.pixiv.net/artworks/62003239","site":"pixiv","title":"OLプロレス（仁義なき女の戦い編","date":"2017-03-19"}]},{"id":58,"name":"丹羽穂垂","kana":"にわ ほたる","roman":"Hotaru Niwa","sortKana":"にわほたる","h":169,"style":"Allround","role":"Neutral","pw":76,"sp":54,"te":63,"st":64,"mn":57,"ovr":63,"traits":["引き出し上手","負けず嫌い"],"profile":"新人・佐久間の教育担当。情に厚い性格で、後輩のために片桐に立ち向かった。バランスの取れた堅実なスタイルが持ち味。負けず嫌いの性格と面倒見の良さで、社内の若手からは姉貴分として慕われている。","img":"upper_niwa_h.webp","series":"OLプロレス","aff":"OL","works":[{"url":"https://takoyaki.fanbox.cc/posts/793134","site":"fanbox","title":"OLプロレス片桐さん対丹羽さん","date":"2020-02-02"}]},{"id":59,"name":"池辺マリ","kana":"いけべ まり","roman":"Mari Ikebe","sortKana":"いけべまり","h":162,"style":"Brawler","role":"Heel","pw":70,"sp":51,"te":40,"st":62,"mn":53,"ovr":55,"traits":["負けず嫌い"],"profile":"大久保の人気に嫉妬する女性社員。先輩の浅見に利用され大久保に試合を挑んだ直情型ブロウラー。パワーで押すスタイルは荒削りだが、直情的な性格ゆえの爆発力は侮れない。","img":"upper_ikebe_m.webp","series":"OLプロレス","aff":"OL","works":[{"url":"https://www.pixiv.net/artworks/62003239","site":"pixiv","title":"OLプロレス（仁義なき女の戦い編","date":"2017-03-19"}]},{"id":60,"name":"馬入橋ほとり","kana":"ばにゅうばし ほとり","roman":"Hotori Banyubashi","sortKana":"ばにゅうばしほとり","h":157,"style":"Grappler","role":"Babyface","pw":82,"sp":68,"te":59,"st":70,"mn":78,"ovr":71,"traits":["早熟","鉄人","頑丈さ"],"profile":"特殊な血筋で一時的に女性化した元男子。恵まれた体格とパワー、そして精神的な強さでリングを制する。男性時代の身体能力の残滓と女性化後に身につけたしなやかさを併せ持つ異色のグラップラー。鉄人と呼ぶにふさわしいタフネスで、長期戦にも耐えうるスタミナの持ち主。","img":"upper_banyubashi_h.webp","series":"JKになった俺(ry","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/354724","site":"fanbox","title":"女子高生になった俺がクラスのギャルと本気のプロレスバトルをする事になった件","date":"2019-04-19"}]},{"id":61,"name":"観音崎せりか","kana":"かんのんざき せりか","roman":"Serika Kannonzaki","sortKana":"かんのんざきせりか","h":169,"style":"Allround","role":"Heel","pw":69,"sp":73,"te":71,"st":72,"mn":76,"ovr":72,"traits":["ムードメーカー","人望"],"profile":"ギャル3人衆のリーダー格。クラスカーストのトップに君臨し、ルックスにも身体能力にも自信ありの実力者。華やかなルックスと高いプライドで注目を集める。より大きな舞台での活躍を虎視眈々と狙っている。","img":"upper_kannonzaki_s.webp","series":"JKになった俺(ry","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/354724","site":"fanbox","title":"女子高生になった俺がクラスのギャルと本気のプロレスバトルをする事になった件","date":"2019-04-19"},{"url":"https://takoyaki.fanbox.cc/posts/2056683","site":"fanbox","title":"【催眠アプリ戦】白銀麗子VS観音崎せりか","date":"2021-04-10"}]},{"id":62,"name":"宮ケ瀬千夏","kana":"みやがせ ちなつ","roman":"Chinatsu Miyagase","sortKana":"みやがせちなつ","h":169,"style":"Brawler","role":"Heel","pw":70,"sp":66,"te":40,"st":66,"mn":50,"ovr":58,"traits":["ヒール適性","威圧感"],"profile":"ギャル3人衆の一角。恋する乙女として伊勢原文奈を警戒していた。パワーと威圧感を武器にしたラフファイトが持ち味で、体格を活かした圧力は相当。恋愛モードの時は甘いが、リングに上がると獰猛な戦闘本能を剥き出しにする。","img":"upper_miyagase_c.webp","series":"JKになった俺(ry","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/337779","site":"fanbox","title":"優しいクラスメートＶＳちょっかいを出してくるギャル","date":"2019-04-03"}]},{"id":63,"name":"伊勢原文奈","kana":"いせはら ふみな","roman":"Fumina Isehara","sortKana":"いせはらふみな","h":158,"style":"Allround","role":"Babyface","pw":53,"sp":58,"te":56,"st":55,"mn":55,"ovr":55,"traits":["忠誠心"],"profile":"クラスの優等生委員長。ギャルグループとの軋轢で立場を失ったが、芯の強さは失っていない。真面目で正義感が強い。能力は平均的だが、最後まで諦めない姿勢は周囲の尊敬を集めている。","img":"upper_isehara_f.webp","series":"JKになった俺(ry","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/337779","site":"fanbox","title":"優しいクラスメートＶＳちょっかいを出してくるギャル","date":"2019-04-03"}]},{"id":64,"name":"湯本ほたる","kana":"ゆもと ほたる","roman":"Hotaru Yumoto","sortKana":"ゆもとほたる","h":160,"style":"Allround","role":"Neutral","pw":52,"sp":58,"te":51,"st":54,"mn":48,"ovr":53,"traits":[],"profile":"ギャル3人衆の一人。長いものに巻かれるタイプで、バックがいる時だけ強気になる世渡り上手。","img":"upper_yumoto_h.webp","series":"JKになった俺(ry","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/354724","site":"fanbox","title":"女子高生になった俺がクラスのギャルと本気のプロレスバトルをする事になった件","date":"2019-04-19"}]},{"id":65,"name":"倉見菜々","kana":"くらみ なな","roman":"Nana Kurami","sortKana":"くらみなな","h":161,"style":"Allround","role":"Neutral","pw":72,"sp":73,"te":77,"st":79,"mn":84,"ovr":77,"traits":["ファンサービス","名勝負製造機"],"profile":"人当たりの良さで患者にも同僚にも人気のナース。仕事中は優しいが、外に出ればけっこう毒舌。看護師としての観察眼はリングでも遺憾なく発揮され、名勝負製造機として好試合を生み出してきた。バランスの取れた高い総合力とファンサービス精神で幅広い支持を集める。","img":"upper_kurami_n.webp","series":"看護婦MIX","aff":"","works":[{"url":"https://takoyaki.fanbox.cc/posts/1015453","site":"fanbox","title":"看護婦さんとMIXプロレス（VS倉見菜々）","date":"2020-05-06"}]},{"id":66,"name":"長谷川レオナ","kana":"はせがわ れおな","roman":"Reona Hasegawa","sortKana":"はせがわれおな","h":164,"style":"Allround","role":"Neutral","pw":75,"sp":70,"te":75,"st":69,"mn":78,"ovr":73,"traits":["人望","引き出し上手"],"profile":"高校時代はクラスのマドンナだった美人看護師。多額の借金を背負い地下格闘の世界に身を投じた。追い詰められた環境で培った精神的タフさと引き出しの多さが最大の武器。独特の雰囲気をまとい、周囲を引きつけるカリスマ性を持つ。","img":"upper_hasegawa_r.webp","series":"マドンナプロレス","aff":"","works":[{"url":"https://takoyaki.fanbox.cc/posts/1138979","site":"fanbox","title":"激闘！マドンナプロレス【導入編】","date":"2020-06-21"}]},{"id":67,"name":"柳島みずほ","kana":"やなぎしま みずほ","roman":"Mizuho Yanagishima","sortKana":"やなぎしまみずほ","h":165,"style":"Grappler","role":"Babyface","pw":83,"sp":61,"te":68,"st":73,"mn":83,"ovr":74,"traits":["ファンサービス","華","野心"],"profile":"かつては天才美少女ピアニストとして名を馳せた。夢破れた後も秘めた思いは消えず、望みをかなえるために地下プロレスに身を投じる。繊細な指先から繰り出すのは今やピアノではなく、容赦ないパワーグラップリング。華やかな容姿の瞳の奥には、挫折を乗り越えた者だけが持つ覚悟が宿っている。","img":"upper_yanagishima_m.webp","series":"マドンナプロレス","aff":"","works":[{"url":"https://takoyaki.fanbox.cc/posts/1138979","site":"fanbox","title":"激闘！マドンナプロレス【導入編】","date":"2020-06-21"}]},{"id":68,"name":"大庭愛菜","kana":"おおば あいな","roman":"Aina Oba","sortKana":"おおばあいな","h":155,"style":"Striker","role":"Neutral","pw":68,"sp":77,"te":52,"st":70,"mn":76,"ovr":69,"traits":["負けず嫌い"],"profile":"ツンデレ女子大生。負けず嫌いで、大切な人のためなら全力で戦う情熱家。スピードのある打撃が武器のストライカーで、感情をエネルギーに変えて戦うタイプ。大切な人を守るためにリングに立つ姿は応援したくなる魅力を放っている。","img":"upper_oba_a.webp","series":"商店街ボクシング","aff":"大学生","works":[{"url":"https://takoyaki.fanbox.cc/posts/825603","site":"fanbox","title":"商店街ボクシング　美人クリーニング店主VS幼なじみ女子大生","date":"2020-03-04"}]},{"id":69,"name":"早川モナ","kana":"はやかわ もな","roman":"Mona Hayakawa","sortKana":"はやかわもな","h":162,"style":"Aerial","role":"Babyface","pw":63,"sp":74,"te":63,"st":74,"mn":64,"ovr":68,"traits":["華","負けず嫌い"],"profile":"現役女子大生レースクイーン。チアリーディング部仕込みの身体能力でスピーディーな試合を展開する。持ち前の華やかさと俊敏さを活かしたスピードスタイルで観客を魅了する。負けず嫌いの性格で、華麗な見た目とは裏腹に根性のある粘り強い試合を見せる。","img":"upper_hayakawa_m.webp","series":"RQプロレス","aff":"","works":[{"url":"https://takoyaki.fanbox.cc/posts/2269906","site":"fanbox","title":"【RQプロレス】東金沙織VS早川モナ【導入編】","date":"2021-05-29"}]},{"id":70,"name":"浜竹美咲","kana":"はまたけ みさき","roman":"Misaki Hamatake","sortKana":"はまたけみさき","h":167,"style":"Grappler","role":"Neutral","pw":80,"sp":57,"te":63,"st":68,"mn":68,"ovr":67,"traits":["引き出し上手","忠誠心"],"profile":"未亡人のクリーニング店主。パワフルな組み技が武器の姐御肌。面倒見の良い人柄で周囲から頼りにされる存在。パワフルなグラップリングに加え、引き出し上手な試合運びで若手の成長を手助けすることも多い。","img":"upper_hamatake_m.webp","series":"商店街ボクシング","aff":"","works":[{"url":"https://takoyaki.fanbox.cc/posts/825603","site":"fanbox","title":"商店街ボクシング　美人クリーニング店主VS幼なじみ女子大生","date":"2020-03-04"}]},{"id":71,"name":"東金沙織","kana":"とうがね さおり","roman":"Saori Togane","sortKana":"とうがねさおり","h":167,"style":"Allround","role":"Neutral","pw":70,"sp":62,"te":69,"st":62,"mn":67,"ovr":66,"traits":["ファンサービス"],"profile":"モデルと兼業のレースクイーン。華やかなルックスの裏に堅実な実力を秘める。ファンサービス精神旺盛で華やかな試合を心がけるが、実力も確か。安定感のあるオールラウンドスタイルで、どんな相手とも一定以上の試合ができる信頼度の高い選手。","img":"upper_togane_s.webp","series":"RQプロレス","aff":"","works":[{"url":"https://takoyaki.fanbox.cc/posts/2269906","site":"fanbox","title":"【RQプロレス】東金沙織VS早川モナ【導入編】","date":"2021-05-29"}]},{"id":72,"name":"穴澤ほのか","kana":"あなざわ ほのか","roman":"Honoka Anazawa","sortKana":"あなざわほのか","h":168,"style":"Grappler","role":"Neutral","pw":74,"sp":58,"te":65,"st":63,"mn":70,"ovr":66,"traits":["ファンサービス","引き出し上手","野心"],"profile":"優しげな淑女の仮面の下に利己的なサイコパスの本性を隠す。体格・パワー・実力すべて備えた危険な美女。ファンサービスで人気を集める裏で、相手を精神的に追い詰める巧みな心理戦を展開する。自らの保身や欲のためには手段を選ばない。","img":"upper_anazawa_h.webp","series":"","aff":"","works":[]},{"id":73,"name":"大馬越よし子","kana":"おおまごえ よしこ","roman":"Yoshiko Omagoshi","sortKana":"おおまごえよしこ","h":179,"style":"Grappler","role":"Neutral","pw":84,"sp":48,"te":56,"st":67,"mn":68,"ovr":65,"traits":["威圧感","頑丈さ"],"profile":"夏祭の奉納試合に出場した女性。威圧感のある体格と頑丈さを武器にするパワーグラップラー。179cmの体格から繰り出す豪快なグラップリングは力強さに溢れ、接近戦では無類の強さを誇る。","img":"upper_omagoe_y.webp","series":"親戚お姉さんプロレス","aff":"","works":[{"url":"https://takoyaki.fanbox.cc/posts/2727936","site":"fanbox","title":"親戚のお姉さんプロレス【夏祭編】","date":"2021-09-24"}]},{"id":74,"name":"富士見ヶ丘遥","kana":"ふじみがおか はるか","roman":"Haruka Fujimigaoka","sortKana":"ふじみがおかはるか","h":164,"style":"Allround","role":"Babyface","pw":60,"sp":68,"te":58,"st":66,"mn":70,"ovr":64,"traits":["ファンサービス"],"profile":"ミスコングランプリの文学部生。お淑やかな印象だが性格はわりと強気。仏検1級の才媛。知性と品格を感じさせる立ち居振る舞いの中に、試合では意外な負けん気を覗かせる。","img":"upper_fujimigaoka_h.webp","series":"女子大生プロレス","aff":"大学生","works":[{"url":"https://takoyaki.fanbox.cc/posts/596786","site":"fanbox","title":"女子大生プロレス！ 富士見ヶ丘さん 対 海老名さん","date":"2019-10-09"}]},{"id":75,"name":"海老名栞","kana":"えびな しおり","roman":"Shiori Ebina","sortKana":"えびなしおり","h":159,"style":"Submission","role":"Babyface","pw":53,"sp":58,"te":67,"st":63,"mn":80,"ovr":64,"traits":["ファンサービス","ライバル体質","野心"],"profile":"ミスコン2位の野心家。明るく快活な美人の本性は利己的で、他人を蹴落とすことにも抵抗がない。ファンの前では笑顔を振りまくが、ライバルには容赦のない心理戦を仕掛ける。","img":"upper_ebina_s.webp","series":"女子大生プロレス","aff":"大学生","works":[{"url":"https://takoyaki.fanbox.cc/posts/596786","site":"fanbox","title":"女子大生プロレス！ 富士見ヶ丘さん 対 海老名さん","date":"2019-10-09"}]},{"id":76,"name":"栗林あかり","kana":"くりばやしあかり","roman":"Akari Kuribayashi","sortKana":"くりばやしあかり","h":153,"style":"Striker","role":"Neutral","pw":68,"sp":68,"te":40,"st":66,"mn":58,"ovr":60,"traits":["ライバル体質","負けず嫌い"],"profile":"初めての恋人に浮かれる素直で明るい女子高生。技術面はまだ発展途上だが、パワーとスピードのバランスが良い。","img":"upper_kuribayashi_a.webp","series":"","aff":"高校生","works":[]},{"id":77,"name":"新見ゆり","kana":"にいみゆり","roman":"Yuri Niimi","sortKana":"にいみゆり","h":168,"style":"Allround","role":"Neutral","pw":66,"sp":57,"te":63,"st":54,"mn":53,"ovr":59,"traits":["引き出し上手"],"profile":"若くして大人びた色気を持った女子高生。冷静な観察眼で相手の隙を見抜く知性派。引き出しの多い堅実なオールラウンダー。","img":"upper_niimi_y.webp","series":"","aff":"高校生","works":[]},{"id":78,"name":"椿山みさき","kana":"つばきやま みさき","roman":"Misaki Tsubakiyama","sortKana":"つばきやまみさき","h":163,"style":"Allround","role":"Babyface","pw":58,"sp":54,"te":51,"st":63,"mn":60,"ovr":57,"traits":["引き出し上手","華","負けず嫌い"],"profile":"田舎暮らしから抜け出したいと願い続けて都会に出てきた。引き出し上手な試合センスと純朴さから来る独自の魅力で、ファン層を獲得している。格上相手にも決して引かない粘り強さが持ち味。","img":"upper_tsubakiyama_m.webp","series":"親戚お姉さんプロレス","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/2727936","site":"fanbox","title":"親戚のお姉さんプロレス【夏祭編】","date":"2021-09-24"}]},{"id":79,"name":"久堂梨々花","kana":"くどう りりか","roman":"Ririka Kudo","sortKana":"くどうりりか","h":156,"style":"Brawler","role":"Heel","pw":67,"sp":63,"te":46,"st":56,"mn":38,"ovr":54,"traits":["ヒール適性"],"profile":"ハニートラップでオヤジ狩りをしていたギャル。手段を選ばないダーティなブロウラー。","img":"upper_kudo_r.webp","series":"オヤジ狩ギャルVSサラリーマン","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/1914501","site":"fanbox","title":"オヤジ狩りギャルVSサラリーマン【小品・R18】","date":"2021-02-16"}]},{"id":80,"name":"高島さや","kana":"たかしま さや","roman":"Saya Takashima","sortKana":"たかしまさや","h":145,"style":"Allround","role":"Babyface","pw":21,"sp":32,"te":19,"st":18,"mn":19,"ovr":22,"traits":["ファンサービス","ムードメーカー"],"profile":"プロレスをするには不似合いな華奢でひ弱な少女。明日をも知れぬ日々に怯えながらも懸命に生きている。全ステータスが最低クラスだが、ムードメーカーとして場を明るくするファンサービス精神は誰にも負けない。彼女がリングに立つ姿は、強さとは何かを問いかける。","img":"upper_takashima_s.webp","series":"","aff":"中学生","works":[]},{"id":81,"name":"坂本莉衣奈","kana":"さかもと りいな","roman":"Riina Sakamoto","sortKana":"さかもとりいな","h":153,"style":"Aerial","role":"Neutral","pw":68,"sp":76,"te":65,"st":78,"mn":77,"ovr":73,"traits":["ムードメーカー"],"profile":"新卒3年目の若手OL。おじさん人気による手厚いサポートで営業成績も好調で、ちょっと調子に乗っている元気印。プロレスではスピードを活かした軽快なファイトスタイルが持ち味で、ムードメーカー気質も相まって試合会場を盛り上げる。スタミナとメンタルの高さで粘り強い試合運びを見せる。","img":"upper_sakamoto_r.webp","series":"OLプロレス","aff":"OL","works":[{"url":"https://www.pixiv.net/artworks/53458320","site":"pixiv","title":"ＯＬプロレス！総務の近藤さん対営業の坂本さん","date":"2015-11-08"}]},{"id":82,"name":"近藤ゆりか","kana":"こんどう ゆりか","roman":"Yurika Kondo","sortKana":"こんどうゆりか","h":166,"style":"Grappler","role":"Neutral","pw":68,"sp":72,"te":70,"st":71,"mn":73,"ovr":71,"traits":["不屈","鉄人"],"profile":"中途入社3年目の総務部員。事務職のキャリアは長く優秀だが、社内の人間関係にストレスを溜めている。ストレスの捌け口として始めたプロレスで意外な才能が開花。圧倒的なパワーとタフネスでリングを支配するグラップラーであり、侮れない実力者。","img":"upper_kondo_y.webp","series":"OLプロレス","aff":"OL","works":[{"url":"https://www.pixiv.net/artworks/53458320","site":"pixiv","title":"ＯＬプロレス！総務の近藤さん対営業の坂本さん","date":"2015-11-08"}]},{"id":83,"name":"佐久間ひより","kana":"","roman":"Hiyori Sakuma","sortKana":"さくまひより","h":151,"style":"Allround","role":"Babyface","pw":61,"sp":58,"te":48,"st":56,"mn":68,"ovr":58,"traits":["負けず嫌い"],"profile":"新卒1年目の新人OL。まだまだ仕事は覚束ないが、やる気と負けん気だけは溢れている。経験不足を気持ちの強さで補い、先輩たちに食らいつく姿は応援したくなる魅力がある。丹羽の指導のもと着実に成長しており、将来性に期待がかかる。","img":"upper_sakuma_h.webp","series":"OLプロレス","aff":"OL","works":[{"url":"https://takoyaki.fanbox.cc/posts/793133","site":"fanbox","title":"社員旅行でOLプロレス","date":"2020-02-01"}]},{"id":84,"name":"南谷杏","kana":"みなみや あん","roman":"An Minamitani","sortKana":"みなみやあん","h":166,"style":"Allround","role":"Neutral","pw":65,"sp":56,"te":63,"st":59,"mn":50,"ovr":59,"traits":["ファンサービス"],"profile":"大手不動産の事務職OL。営業職の男たちに囲まれたストレスを地下プロレスで発散している。","img":"upper_minamitani_a.webp","series":"","aff":"OL","works":[{"url":"https://takoyaki.fanbox.cc/posts/280078","site":"fanbox","title":"お姉さんプロレス　鴨志田さん　対　南谷さん","date":"2019-02-06"}]},{"id":85,"name":"鴨志田ルーシー","kana":"かもしだ るーしー","roman":"Lucy Kamoshida","sortKana":"かもしだるーしー","h":172,"style":"Grappler","role":"Neutral","pw":74,"sp":58,"te":43,"st":69,"mn":73,"ovr":63,"traits":["頑丈さ"],"profile":"名前がちょっとキラキラな大学4年生。アパレルに就職内定済み。同じサークルの後輩に彼氏持ち。グラップリングを軸にタフネスで粘る試合スタイル。就活も恋愛も順調で、プロレスはあくまで趣味の延長だが潜在能力は侮れない。","img":"upper_kamoshida_r.webp","series":"","aff":"大学生","works":[{"url":"https://takoyaki.fanbox.cc/posts/280078","site":"fanbox","title":"お姉さんプロレス　鴨志田さん　対　南谷さん","date":"2019-02-06"}]},{"id":86,"name":"芹沢亜里紗","kana":"せりざわ ありさ","roman":"Arisa Serizawa","sortKana":"せりざわありさ","h":166,"style":"Allround","role":"Heel","pw":70,"sp":70,"te":53,"st":58,"mn":61,"ovr":62,"traits":["ファンサービス"],"profile":"某化粧品会社の企画部を率いる才女。地下プロレスでストレスを発散する連戦連勝のダーティファイター。ファンサービスの裏に隠された本性はかなりのダーティファイターで、反則すれすれの駆け引きを楽しむ。","img":"upper_serizawa_a.webp","series":"パツキンVSヒール","aff":"OL","works":[{"url":"https://takoyaki.fanbox.cc/posts/573839","site":"fanbox","title":"パツキン巨乳美少女北欧風ＶＳヒョウ柄セクシー美人ヒール","date":"2019-09-26"}]},{"id":87,"name":"レオナ・O・シュタインフェルト","kana":"れおな おーむら しゅたいんふぇると","roman":"Leona O. Steinfeld","sortKana":"れおなおーむらしゅたいんふぇると","h":152,"style":"Aerial","role":"Babyface","pw":72,"sp":77,"te":43,"st":65,"mn":68,"ovr":65,"traits":["華"],"profile":"オーストリアからの留学生。体操競技の強化選手で、金髪碧眼の美少女が地下リングに舞い降りた。体操仕込みの華麗な空中殺法とスピードは観客を魅了し、その華やかな存在感で一躍人気者に。グラウンド技術には課題を残すが、身体能力の高さで十分カバーしている。","img":"upper_steinfeld_l.webp","series":"パツキンVSヒール","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/573839","site":"fanbox","title":"パツキン巨乳美少女北欧風ＶＳヒョウ柄セクシー美人ヒール","date":"2019-09-26"}]},{"id":88,"name":"愛川明日香","kana":"あいかわ あすか","roman":"Asuka Aikawa","sortKana":"あいかわあすか","h":162,"style":"Allround","role":"Heel","pw":52,"sp":54,"te":70,"st":65,"mn":48,"ovr":58,"traits":[],"profile":"繁華街の怪しげなプロレスクラブのキャスト。昼は普通のOL、夜はリングに上がるテクニシャン。二重生活の中で培ったサブミッション技術は確かなもの。地味だが堅実な試合運びで、知る人ぞ知る実力者。","img":"upper_aikawa_a.webp","series":"","aff":"OL","works":[{"url":"https://takoyaki.fanbox.cc/posts/601671","site":"fanbox","title":"色々出来るお店のヤツ（プロレスパック）","date":"2019-10-12"}]},{"id":89,"name":"赤羽あんな","kana":"あかばね あんな","roman":"Anna Akabane","sortKana":"あかばねあんな","h":163,"style":"Aerial","role":"Neutral","pw":73,"sp":75,"te":64,"st":69,"mn":68,"ovr":70,"traits":["ファンサービス"],"profile":"東商店街のケーキ屋の看板娘。幼馴染をめぐるライバルとの因縁を抱えるスピードファイター。持ち前の快活さと高い身体能力を活かしたスピードスタイルが武器。ファンサービスにも熱心で、商店街の顔として地元での人気は抜群。","img":"upper_akabane_a.webp","series":"商店街プロレス","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/766334","site":"fanbox","title":"商店街プロレス　赤羽あんなVS玉手すみれ【導入編】","date":"2020-01-12"}]},{"id":90,"name":"玉手すみれ","kana":"たまて すみれ","roman":"Sumire Tamate","sortKana":"たまてすみれ","h":161,"style":"Grappler","role":"Neutral","pw":72,"sp":69,"te":75,"st":74,"mn":72,"ovr":72,"traits":["ヒール適性","威圧感","華"],"profile":"西商店街の和菓子屋の一人娘。憧れの男子をめぐり赤羽と険悪。コツコツと実力を積み上げるタイプで、長期戦で真価を発揮する。粘り強いグラップリングで相手を消耗させる持久戦型のスタイルが持ち味。","img":"upper_tamate_s.webp","series":"商店街プロレス","aff":"高校生","works":[{"url":"https://takoyaki.fanbox.cc/posts/766334","site":"fanbox","title":"商店街プロレス　赤羽あんなVS玉手すみれ【導入編】","date":"2020-01-12"}]},{"id":91,"name":"等々力あかね","kana":"とどろき あかね","roman":"Akane Todoroki","sortKana":"とどろきあかね","h":170,"style":"Allround","role":"Neutral","pw":71,"sp":72,"te":68,"st":74,"mn":68,"ovr":71,"traits":["負けず嫌い"],"profile":"常川高校プロレス部のキャプテン。安定した実力を持つバランス型ファイター。170cmの恵まれた体格を活かしたバランスの良い試合運びで安定した成績を残している。","img":"upper_todoroki_a.webp","series":"女子高生プロレス","aff":"常川高校","works":[{"url":"https://takoyaki.fanbox.cc/posts/762890","site":"fanbox","title":"競泳水着の主将が個人指導されるだけ（R18）","date":"2020-01-10"}]},{"id":92,"name":"飯島冴子","kana":"いいじま さえこ","roman":"Saeko Iijima","sortKana":"いいじまさえこ","h":170,"style":"Submission","role":"Neutral","pw":66,"sp":58,"te":69,"st":46,"mn":44,"ovr":57,"traits":["忠誠心"],"profile":"その色香で大勢の青少年を悩ませる美人養護教諭。サブミッション技術は確かだがスタミナに難あり。冷静に相手の急所を見極める関節技は安定しているが、スタミナ不足は深刻で長期戦に持ち込まれると一気に失速する弱点を抱える。","img":"upper_iijima_s.webp","series":"保健室プロレス","aff":"","works":[]},{"id":93,"name":"松久保伊織","kana":"まつくぼ いおり","roman":"Iori Matsukubo","sortKana":"まつくぼいおり","h":163,"style":"Grappler","role":"Babyface","pw":61,"sp":64,"te":69,"st":59,"mn":54,"ovr":61,"traits":["忠誠心","早熟"],"profile":"名門校プロレス部のエース。容姿端麗・成績優秀・面倒見良しの三拍子がそろう。1年次から頭角を現し、チームメイトからの信頼も厚い人格者。グラップリングを軸にしたバランスの良いスタイルだが、突出した武器がないのが課題。","img":"upper_matsukubo_i.webp","series":"催眠アプリマッチ","aff":"高校生","works":[]},{"id":94,"name":"須藤美月","kana":"すどう みつき","roman":"Mitsuki Sudo","sortKana":"すどうみつき","h":158,"style":"Submission","role":"Heel","pw":58,"sp":58,"te":65,"st":48,"mn":45,"ovr":55,"traits":["ヒール適性"],"profile":"かつては期待の有望株だったが松久保との差に自信を失い道を踏み外した。闇試合で鬱屈をぶつける。ヒール性を帯びたサブミッション技術は松久保にも劣らない。挫折を経験した者特有の危うさと闘志が入り混じり、予測不能な爆発力を見せることがある。","img":"upper_sudo_m.webp","series":"催眠アプリマッチ","aff":"高校生","works":[]},{"id":95,"name":"小西ゆきえ","kana":"こにし ゆきえ","roman":"Yukie Konishi","sortKana":"こにしゆきえ","h":165,"style":"Allround","role":"Neutral","pw":57,"sp":63,"te":77,"st":61,"mn":74,"ovr":66,"traits":["ガラスの身体","ファンサービス","早熟"],"profile":"落ち着いた雰囲気の若手レースクイーン。若手レーサーとの秘密の恋を胸に秘める。ファンサービス精神旺盛で華やかな試合を見せるが、ガラスの身体という弱点を抱え、怪我のリスクは常に付きまとう。","img":"upper_konishi_y.webp","series":"RQプロレス","aff":"","works":[]},{"id":96,"name":"松下真理亜","kana":"まつした まりあ","roman":"Maria Matsushita","sortKana":"まつしたまりあ","h":171,"style":"Allround","role":"Neutral","pw":72,"sp":71,"te":65,"st":68,"mn":58,"ovr":67,"traits":["ファンサービス","早熟"],"profile":"ミスコン優勝のテニスサークル所属。華やかなルックスで大学生活を謳歌する早熟型オールラウンダー。テニスで鍛えたフットワークとファンサービス精神で試合を盛り上げる。","img":"upper_matsushita_m.webp","series":"","aff":"大学生","works":[]},{"id":97,"name":"岩崎みどり","kana":"いわさき みどり","roman":"Midori Iwasaki","sortKana":"いわさきみどり","h":158,"style":"Allround","role":"Neutral","pw":70,"sp":79,"te":48,"st":74,"mn":62,"ovr":67,"traits":["努力家","負けず嫌い","頑丈さ"],"profile":"素朴な雰囲気だが恋にも積極的な体育会系女子大生。運動神経抜群で体格に見合わぬパワーも秘める。努力家で負けず嫌いの性格は練習にもリングにも表れ、鍛え抜かれた頑丈な体と高い身体能力でパワフルな試合を展開する。技術面の課題克服が今後の鍵。","img":"upper_iwasaki_m.webp","series":"","aff":"大学生","works":[]},{"id":98,"name":"米山杏里","kana":"よねやま あんり","roman":"Anri Yoneyama","sortKana":"よねやまあんり","h":169,"style":"Allround","role":"Babyface","pw":69,"sp":64,"te":77,"st":68,"mn":71,"ovr":70,"traits":["ガラスの身体","リーダー気質","人望","引き出し上手"],"profile":"人望を集める生徒会長。三浦からの嫉妬を買い文化祭プロレスに出場。リーダーシップと技術が光る。引き出し上手な試合センスと生来の人望で周囲を味方につける。","img":"upper_yoneyama_a.webp","series":"","aff":"高校生","works":[]},{"id":99,"name":"三浦早紀","kana":"みうら さき","roman":"Saki Miura","sortKana":"みうらさき","h":166,"style":"Grappler","role":"Babyface","pw":73,"sp":73,"te":67,"st":78,"mn":65,"ovr":71,"traits":["ファンサービス","ライバル体質","早熟"],"profile":"チアリーダー部部長で校内の人気者。米山への嫉妬心からプロレスマッチを仕掛けた。ファンサービスに長けた華やかさの裏にライバル意識の強い性格を持つ。実力は相当なもの。","img":"upper_miura_s.webp","series":"","aff":"高校生","works":[]},{"id":100,"name":"土岐山乃ノ佳","kana":"ときやま ののか","roman":"Nonoka Tokiyama","sortKana":"ときやまののか","h":152,"style":"Aerial","role":"Babyface","pw":48,"sp":48,"te":60,"st":49,"mn":43,"ovr":50,"traits":["努力家"],"profile":"先輩の沢登鮎を慕って粕田学園高校に入学した努力家の2年生。まだ能力は発展途上だが、ひたむきな姿勢でコツコツと実力をつけている。","img":"upper_tokiyama_n.webp","series":"学園女子プロレス","aff":"井坂高校","works":[]},{"id":101,"name":"沢登鮎","kana":"さわのぼり あゆ","roman":"Ayu Sawanobori","sortKana":"さわのぼりあゆ","h":168,"style":"Grappler","role":"Babyface","pw":68,"sp":51,"te":64,"st":69,"mn":51,"ovr":61,"traits":["引き出し上手"],"profile":"後輩思いの良い先輩。面倒見がよいので頼られがちな性格。相手の良さを引き出すグラップリングが持ち味の堅実派。","img":"upper_sawanobori_a.webp","series":"学園女子プロレス","aff":"井坂高校","works":[]},{"id":102,"name":"大山たかみ","kana":"","roman":"Takami Oyama","sortKana":"おやまたかみ","h":179,"style":"Striker","role":"Heel","pw":71,"sp":51,"te":45,"st":52,"mn":51,"ovr":54,"traits":[],"profile":"大河内軍団のメンバーで力自慢の高身長。179cmの体格を活かしたパワフルな打撃で相手を圧倒する。","img":"upper_oyama_t.webp","series":"学園女子プロレス","aff":"摺出川女学院","works":[]},{"id":103,"name":"財津琴美","kana":"","roman":"Kotomi Zaitsu","sortKana":"ざいつことみ","h":154,"style":"Allround","role":"Babyface","pw":54,"sp":58,"te":64,"st":67,"mn":61,"ovr":61,"traits":["努力家"],"profile":"粕田学園の生徒。真面目で丁寧な性格の努力家。バランスの良いオールラウンドスタイルで着実に実力を伸ばしている。","img":"upper_zaitsu_k.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[]},{"id":104,"name":"吉野萌子","kana":"","roman":"Moeko Yoshino","sortKana":"よしのもえこ","h":149,"style":"Aerial","role":"Neutral","pw":48,"sp":55,"te":52,"st":52,"mn":48,"ovr":51,"traits":[],"profile":"粕田学園の生徒。まだ発展途上だが、軽やかな身のこなしを活かしたエアリアルスタイルの片鱗を見せる。","img":"upper_yoshino_m.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[]},{"id":105,"name":"黒岩千晶","kana":"","roman":"Chiaki Kuroiwa","sortKana":"くろいわちあき","h":181,"style":"Grappler","role":"Neutral","pw":81,"sp":54,"te":52,"st":64,"mn":56,"ovr":61,"traits":["頑丈さ"],"profile":"灰汁洲商業高校出身。181cmの大型グラップラー。体格を活かしたパワフルな戦いを得意とし、頑丈さにも定評がある。","img":"upper_kuroiwa_c.webp","series":"学園女子プロレス","aff":"灰汁洲商業高校","works":[]},{"id":106,"name":"赤沼紗稀","kana":"","roman":"Saki Akanuma","sortKana":"あかぬまさき","h":166,"style":"Striker","role":"Neutral","pw":61,"sp":67,"te":58,"st":48,"mn":50,"ovr":57,"traits":[],"profile":"灰汁洲商業高校出身。瞬発力を活かした打撃戦を得意とするスピード型ストライカー。クールな雰囲気を纏う。","img":"upper_akanuma_s.webp","series":"学園女子プロレス","aff":"灰汁洲商業高校","works":[]},{"id":107,"name":"松岡綾乃","kana":"","roman":"Ayano Matsuoka","sortKana":"まつおかあやの","h":169,"style":"Submission","role":"Neutral","pw":47,"sp":58,"te":71,"st":58,"mn":57,"ovr":58,"traits":["引き出し上手"],"profile":"粕田学園高校3年生。相手の隙を突く一瞬のサブミッションが得意技。冷静な観察眼で相手の弱点を見抜く知性派。","img":"upper_matsuoka_a.webp","series":"学園女子プロレス","aff":"粕田学園高校","works":[]},{"id":108,"name":"結城玲奈","kana":"","roman":"Rena Yuuki","sortKana":"ゆうきれな","h":158,"style":"Allround","role":"Neutral","pw":56,"sp":67,"te":58,"st":62,"mn":56,"ovr":60,"traits":["努力家"],"profile":"お嬢様高校に通う育ちの良い優等生。丁寧で品のある立ち居振る舞いだが、努力を惜しまない芯の強さを持つ。","img":"upper_yuuki_r.webp","series":"","aff":"高校生","works":[]},{"id":109,"name":"戸塚ゆかり","kana":"","roman":"Yukari Totsuka","sortKana":"とつかゆかり","h":160,"style":"Aerial","role":"Babyface","pw":66,"sp":55,"te":53,"st":68,"mn":62,"ovr":61,"traits":["ムードメーカー"],"profile":"ふわっとした雰囲気の天然アイドル系女子高生。マイペースな性格とムードメーカー気質で周囲を和ませる癒し系エアリアルファイター。","img":"upper_totsuka_y.webp","series":"","aff":"高校生","works":[]},{"id":110,"name":"若林美佐子","kana":"","roman":"Misako Wakabayashi","sortKana":"わかばやしみさこ","h":166,"style":"Allround","role":"Neutral","pw":64,"sp":57,"te":63,"st":68,"mn":52,"ovr":61,"traits":["引き出し上手"],"profile":"スポーツジムのインストラクター。鍛え上げた体力と指導経験から来る引き出し上手な試合運びが武器のオールラウンダー。","img":"upper_wakabayashi_m.webp","series":"","aff":"","works":[]},{"id":111,"name":"相模あずみ","kana":"","roman":"Azumi Sagami","sortKana":"さがみあずみ","h":164,"style":"Grappler","role":"Neutral","pw":62,"sp":66,"te":58,"st":64,"mn":67,"ovr":63,"traits":["ライバル体質","負けず嫌い"],"profile":"老舗ベーカリーレストランの看板アルバイト。混雑するランチタイムでも冷静にフロアを回す現場の司令塔。負けず嫌いのライバル体質。","img":"upper_sagami_a.webp","series":"","aff":"大学生","works":[]},{"id":112,"name":"朝比奈ひかり","kana":"","roman":"Hikari Asahina","sortKana":"あさひなひかり","h":162,"style":"Aerial","role":"Babyface","pw":52,"sp":56,"te":48,"st":63,"mn":59,"ovr":56,"traits":["ファンサービス","華"],"profile":"陽のオーラ全開のグラビアアイドル。明るい笑顔と健康的なプロポーションで現場の空気を変えるムードメーカー。華のあるエアリアルファイト。","img":"upper_asahina_h.webp","series":"","aff":"","works":[]},{"id":113,"name":"綿貫すず","kana":"","roman":"Suzu Watanuki","sortKana":"わたぬきすず","h":159,"style":"Striker","role":"Neutral","pw":51,"sp":61,"te":53,"st":52,"mn":54,"ovr":54,"traits":["ファンサービス","華"],"profile":"クールな美貌が売りのグラビアアイドル。ファンサービスに長けた華やかな存在感で、スピードを活かした打撃戦を展開する。","img":"upper_watanuki_s.webp","series":"","aff":"","works":[]},{"id":114,"name":"木村レイカ","kana":"","roman":"Reika Kimura","sortKana":"きむられいか","h":164,"style":"Grappler","role":"Neutral","pw":58,"sp":64,"te":62,"st":63,"mn":69,"ovr":63,"traits":["負けず嫌い"],"profile":"人気ファッション誌の専属モデル。ハーフの容姿を活かして活躍中。強気な性格と負けん気でリングでも存在感を放つグラップラー。","img":"upper_kimura_r.webp","series":"","aff":"","works":[]},{"id":115,"name":"豊田いすず","kana":"","roman":"Isuzu Toyoda","sortKana":"とよだいすず","h":171,"style":"Grappler","role":"Babyface","pw":69,"sp":53,"te":63,"st":58,"mn":63,"ovr":61,"traits":["引き出し上手"],"profile":"高校の美人女教師。穏やかな物腰だが、グラップリングの実力は確か。引き出し上手な試合運びで相手の良さも引き出す教育者気質。","img":"upper_toyota_i.webp","series":"","aff":"","works":[]},{"id":116,"name":"リナ・モーガン","kana":"","roman":"Rina Morgan","sortKana":"もがんりな","h":170,"style":"Allround","role":"Neutral","pw":76,"sp":77,"te":73,"st":71,"mn":67,"ovr":73,"traits":["リーダー気質","華"],"profile":"海外から参戦した実力者。高い身体能力とリーダーシップを兼ね備えたオールラウンダー。華のある試合で観客を魅了する。","img":"upper_morgan_r.webp","series":"","aff":"","works":[]},{"id":117,"name":"クラッシャー毒島","kana":"","roman":"Crusher Busujima","sortKana":"ぶすじまるへ","h":184,"style":"Brawler","role":"Heel","pw":88,"sp":67,"te":58,"st":66,"mn":55,"ovr":67,"traits":["ヒール適性","威圧感"],"profile":"地下リングで挑戦者をことごとく地獄に沈めてきた処刑人。184cmの巨体から繰り出す破壊的なブロウラーファイトと威圧感で相手を震え上がらせる。","img":"upper_crusher_b.webp","series":"","aff":"","works":[]},{"id":118,"name":"割田久美","kana":"","roman":"Kumi Warita","sortKana":"わりたくみ","h":181,"style":"Submission","role":"Heel","pw":68,"sp":59,"te":57,"st":58,"mn":62,"ovr":61,"traits":["ヒール適性"],"profile":"地下プロレスで暗躍するヒール。悪徳レフェリーと結託し、新人選手に不公平な試合を強いる卑劣なサブミッション使い。","img":"upper_warida_k.webp","series":"","aff":"","works":[]},{"id":119,"name":"岩小路志摩子","kana":"","roman":"Shimako Iwanokoji","sortKana":"いわのこじしまこ","h":166,"style":"Striker","role":"Babyface","pw":54,"sp":73,"te":68,"st":59,"mn":72,"ovr":65,"traits":["努力家"],"profile":"現代社会には不似合いな古風な大和撫子。本当に現代人かと疑うほどの古風さだが、努力家の一面とスピードのある打撃で侮れない実力を持つ。","img":"upper_iwakoji_s.webp","series":"","aff":"高校生","works":[]},{"id":120,"name":"蔵前静","kana":"","roman":"Shizuka Kuramae","sortKana":"くらまえしずか","h":168,"style":"Submission","role":"Babyface","pw":64,"sp":56,"te":62,"st":67,"mn":65,"ovr":63,"traits":["ムードメーカー"],"profile":"おっとり系お嬢様。穏やかな雰囲気とは裏腹に、グラウンド技術には確かなものがある。ムードメーカー気質でチームの雰囲気を和らげる。","img":"upper_kuramae_s.webp","series":"","aff":"高校生","works":[]},{"id":121,"name":"山本理香","kana":"","roman":"Rika Yamamoto","sortKana":"やまもとりか","h":168,"style":"Striker","role":"Neutral","pw":71,"sp":68,"te":51,"st":64,"mn":64,"ovr":64,"traits":["頑丈さ"],"profile":"快活そうな褐色ギャル。明るく元気な性格で、頑丈さを武器にしたタフなストライカー。","img":"upper_yamamoto_r.webp","series":"","aff":"高校生","works":[]},{"id":122,"name":"宮沢ひかる","kana":"","roman":"Hikaru Miyazawa","sortKana":"みやざわひかる","h":164,"style":"Striker","role":"Neutral","pw":58,"sp":74,"te":64,"st":60,"mn":60,"ovr":63,"traits":["負けず嫌い"],"profile":"ミステリアスな雰囲気の金髪ギャル。寡黙だがリングに上がると負けず嫌いの闘志を見せるスピード型ストライカー。","img":"upper_miyazawa_h.webp","series":"","aff":"高校生","works":[]},{"id":123,"name":"柳沼英子","kana":"","roman":"Eiko Yaginuma","sortKana":"やぎぬまえいこ","h":175,"style":"Striker","role":"Neutral","pw":65,"sp":54,"te":53,"st":57,"mn":55,"ovr":57,"traits":["適応力"],"profile":"高槻一派のひとり。以前は井沢遥とも交友があったが、団地内の力関係が変わると高槻派に鞍替えした世渡り上手。","img":"upper_yaginuma_e.webp","series":"団地妻プロレス","aff":"","works":[]},{"id":124,"name":"清川 怜","kana":"","roman":"Rei Kiyokawa","sortKana":"きよかわれい","h":175,"style":"Striker","role":"Neutral","pw":71,"sp":48,"te":62,"st":56,"mn":48,"ovr":57,"traits":["ライバル体質"],"profile":"老舗ベーカリーレストランのアルバイト。同僚との口論が絶えないライバル体質。パワフルな打撃が武器のストライカー。","img":"upper_kiyokawa_r.webp","series":"","aff":"大学生","works":[]},{"id":125,"name":"藤代絵麻","kana":"","roman":"Ema Fujishiro","sortKana":"ふじしろえま","h":171,"style":"Aerial","role":"Neutral","pw":72,"sp":51,"te":46,"st":74,"mn":58,"ovr":60,"traits":["ムードメーカー"],"profile":"マリンスポーツを趣味にしている大学生。好きを仕事にする決断に踏み切れず悩み中。マイペースなエアリアルファイター。","img":"upper_fujishiro_e.webp","series":"","aff":"大学生","works":[]},{"id":126,"name":"西園百合香","kana":"","roman":"Yurika Nishizono","sortKana":"にしぞのゆりか","h":165,"style":"Allround","role":"Neutral","pw":58,"sp":61,"te":69,"st":59,"mn":51,"ovr":60,"traits":["努力家"],"profile":"厳しめのお嬢様高校の出身。大学では大人の女に見られがちで、本人も内心喜んでいる。コツコツ努力するオールラウンダー。","img":"upper_nishizono_y.webp","series":"","aff":"大学生","works":[]},{"id":127,"name":"榊原菜摘","kana":"","roman":"Natsumi Sakakibara","sortKana":"さかきばらなつみ","h":170,"style":"Allround","role":"Neutral","pw":66,"sp":58,"te":64,"st":61,"mn":58,"ovr":61,"traits":["努力家","晩成"],"profile":"中堅法律事務所勤務の弁護士。論理的で感情に流されない性格。実年齢より落ち着いた佇まいの晩成型オールラウンダー。","img":"upper_sakakibara_n.webp","series":"","aff":"","works":[]},{"id":128,"name":"巳沼紗霧","kana":"","roman":"Sagiri Minuma","sortKana":"みぬまさぎり","h":166,"style":"Submission","role":"Heel","pw":68,"sp":63,"te":88,"st":73,"mn":67,"ovr":72,"traits":["ヒール適性","リーダー気質"],"profile":"元哲玖四天王の一人。悪辣な外道ファイトとまとわりつくサブミッションで恐れられる哲玖の毒蛇。リーダーシップも兼ね備えた危険な実力者。","img":"upper_minuma_s.webp","series":"学園女子プロレス","aff":"哲玖国際高校","works":[]}],"series":[{"name":"学園女子プロレス","first":"2010-04-17","count":36},{"name":"OLプロレス","first":"2015-11-08","count":8},{"name":"JKになった俺(ry","first":"2019-04-03","count":5},{"name":"パツキンVSヒール","first":"2019-09-26","count":2},{"name":"女子大生プロレス","first":"2019-10-09","count":2},{"name":"女子高生プロレス","first":"2019-11-26","count":17},{"name":"商店街プロレス","first":"2020-01-12","count":2},{"name":"商店街ボクシング","first":"2020-03-04","count":2},{"name":"看護婦MIX","first":"2020-05-06","count":1},{"name":"マドンナプロレス","first":"2020-06-21","count":2},{"name":"団地妻プロレス","first":"2020-11-01","count":11},{"name":"オヤジ狩ギャルVSサラリーマン","first":"2021-02-16","count":1},{"name":"RQプロレス","first":"2021-05-29","count":3},{"name":"親戚お姉さんプロレス","first":"2021-09-24","count":2},{"name":"催眠アプリマッチ","first":"","count":2},{"name":"保健室プロレス","first":"","count":1}],"traits":{"華":{"icon":"華","color":"#e91e9c","desc":"集客力にボーナス。グッズ売上の重みも増加","cat":"pop"},"ファンサービス":{"icon":"奉","color":"#f39c12","desc":"集客力とグッズ売上にボーナス。興行出場で人気が上がりやすい","cat":"pop"},"ヒール適性":{"icon":"悪","color":"#9b59b6","desc":"悪役ムーブで人気を稼ぎ、因縁も生みやすい","cat":"pop"},"名勝負製造機":{"icon":"名","color":"#f1c40f","desc":"試合がたまに大化けする。キックアウトやカウンターが生まれやすい","cat":"match"},"引き出し上手":{"icon":"引","color":"#2ecc71","desc":"格下との試合でも質が下がりにくい","cat":"match"},"ライバル体質":{"icon":"闘","color":"#e74c3c","desc":"ライバル因縁が生まれやすい","cat":"match"},"早熟":{"icon":"早","color":"#27ae60","desc":"10代から即戦力。若いうちに仕上がる成長タイプ","cat":"growth"},"晩成":{"icon":"晩","color":"#16a085","desc":"序盤は遅いが、21〜22歳でピークに成長する","cat":"growth"},"努力家":{"icon":"努","color":"#3498db","desc":"成長が安定しやすく、練習で体を壊しにくい","cat":"growth"},"破天荒":{"icon":"破","color":"#e67e22","desc":"成長にムラあり。爆発的か停滞","cat":"growth"},"適応力":{"icon":"適","color":"#1abc9c","desc":"怪我中でも成長が落ちにくく、追い込み練習にも強い","cat":"growth"},"頑丈さ":{"icon":"頑","color":"#2980b9","desc":"怪我しにくい","cat":"body"},"ガラスの身体":{"icon":"脆","color":"#c0392b","desc":"怪我しやすいが、復帰のたびにファンの声援を集める","cat":"body"},"鉄人":{"icon":"鉄","color":"#7f8c8d","desc":"コンディション全般に強い","cat":"body"},"不屈":{"icon":"屈","color":"#d35400","desc":"怪我からの復帰が速い","cat":"body"},"ムードメーカー":{"icon":"和","color":"#f39c12","desc":"明るさでロッカールームの空気を持ち上げる（雰囲気が良い時は効果が薄れる）","cat":"org"},"人望":{"icon":"望","color":"#3498db","desc":"不安定な選手たちの心を支える（不満が多い時ほど効果が大きい）","cat":"org"},"負けず嫌い":{"icon":"負","color":"#e74c3c","desc":"負けた翌週の練習成長にボーナス","cat":"org"},"リーダー気質":{"icon":"将","color":"#f1c40f","desc":"チームの不満を抑え、チャンピオン時は団体の顔として人気UP","cat":"org"},"忠誠心":{"icon":"忠","color":"#2ecc71","desc":"引き抜きオファーが来る確率が大幅に低下","cat":"org"},"野心":{"icon":"野","color":"#9b59b6","desc":"タイトル挑戦時に試合が盛り上がり、覚醒しやすい","cat":"org"},"番狂わせ体質":{"icon":"番","color":"#e74c3c","desc":"格上相手に丸め込み率UP","cat":"special"},"闘志":{"icon":"志","color":"#c0392b","desc":"瀕死から粘る力が強く、負けても人気が落ちにくい","cat":"special"},"威圧感":{"icon":"威","color":"#8e44ad","desc":"対戦相手の序盤モメンタムが不利","cat":"special"},"反骨心":{"icon":"反","color":"#c0392b","desc":"移籍願望が出やすいが、信頼が低いと成長する","cat":"special"}},"taken":"2026-09-29"};
+  const IMG = 'image/upper/';
+
+  const FIGHTERS = DATA.fighters;
+  const byId = new Map(FIGHTERS.map(f => [f.id, f]));
+  const STATS = [['pw', 'PW', 'パワー'], ['sp', 'SP', 'スピード'], ['te', 'TE', 'テクニック'], ['st', 'ST', 'スタミナ'], ['mn', 'MN', 'メンタル']];
+  const STYLE_ORDER = ['Grappler', 'Striker', 'Submission', 'Aerial', 'Allround', 'Brawler'];
+  const STYLE_JA = { Grappler: 'グラップラー', Striker: 'ストライカー', Submission: 'サブミッション', Aerial: 'エアリアル', Allround: 'オールラウンダー', Brawler: 'ブロウラー' };
+  const ROLE_ORDER = ['Babyface', 'Neutral', 'Heel'];
+  const ROLE_JA = { Babyface: 'ベビーフェイス', Neutral: 'ニュートラル', Heel: 'ヒール' };
+  const SORTS = {
+    id:   { label: 'No.順', desc: false },
+    ovr:  { label: 'OVR', desc: true, metric: true },
+    pw:   { label: 'PW パワー', desc: true, metric: true },
+    sp:   { label: 'SP スピード', desc: true, metric: true },
+    te:   { label: 'TE テクニック', desc: true, metric: true },
+    st:   { label: 'ST スタミナ', desc: true, metric: true },
+    mn:   { label: 'MN メンタル', desc: true, metric: true },
+    h:    { label: '身長', desc: true, metric: true },
+    kana: { label: '名前(五十音)', desc: false },
+  };
+  const SITE_LABEL = { pixiv: 'pixiv', fanbox: 'FANBOX', other: 'LINK' };
+
+  const collator = new Intl.Collator('ja');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+  const tier = v => v > 100 ? 6 : v >= 90 ? 5 : v >= 80 ? 4 : v >= 70 ? 3 : v >= 60 ? 2 : v >= 45 ? 1 : 0;
+  const tv = (k, v) => `<b class="tv t${tier(v)}" data-k="${k}">${v}</b>`;
+  const no = id => 'No.' + String(id).padStart(3, '0');
+  const seriesByName = new Map(DATA.series.map(s => [s.name, s]));
+
+  // ── 状態(表示・並び・まとめは閲覧者ごとに記憶。絞り込みは毎回まっさら) ──
+  const state = { view: 'grid', sort: 'id', desc: false, group: 'none', style: '', role: '', trait: '', q: '' };
+  const PREF_KEY = 'wm-roster-prefs-v1';
+  try {
+    const saved = JSON.parse(localStorage.getItem(PREF_KEY) || 'null');
+    if (saved && typeof saved === 'object') {
+      if (['grid', 'cards'].includes(saved.view)) state.view = saved.view;
+      if (SORTS[saved.sort]) { state.sort = saved.sort; state.desc = !!saved.desc; }
+      if (['none', 'style', 'series'].includes(saved.group)) state.group = saved.group;
+    }
+  } catch (e) { /* 保存領域が使えない環境では既定値のまま */ }
+  function savePrefs() {
+    try { localStorage.setItem(PREF_KEY, JSON.stringify({ view: state.view, sort: state.sort, desc: state.desc, group: state.group })); } catch (e) { /* 無視 */ }
+  }
+
+  // ── 部品 ───────────────────────────────────────
+  function portraitHtml(f, lazy) {
+    const initial = esc(f.name.charAt(0));
+    const img = f.img ? `<img src="${esc(IMG + f.img)}" alt="" ${lazy ? 'loading="lazy"' : ''} decoding="async">` : '';
+    return `<span class="portrait" style="--c:var(--st-${esc(f.style)})">${img}<span class="ph"${f.img ? ' hidden' : ''}>${initial}</span><span class="rank" hidden></span></span>`;
+  }
+  function wireImageFallback(root) {
+    root.querySelectorAll('.portrait img').forEach(img => {
+      img.addEventListener('error', () => { img.hidden = true; img.nextElementSibling.hidden = false; }, { once: true });
+    });
+  }
+  function styleBadge(f) {
+    return `<span class="badge" style="--c:var(--st-${esc(f.style)})">${esc(STYLE_JA[f.style] || f.style)}</span>`;
+  }
+  function roleBadge(f) {
+    return `<span class="badge role">${esc(ROLE_JA[f.role] || f.role)}</span>`;
+  }
+  function barsHtml(f, long) {
+    return `<div class="bars">${STATS.map(([k, abbr, ja]) =>
+      `<div class="bar-r" data-k="${k}" title="${ja}"><small>${long ? ja : abbr}</small><span class="track"><i style="width:${Math.max(0, Math.min(100, f[k]))}%"></i></span>${tv(k, f[k])}</div>`
+    ).join('')}</div>`;
+  }
+  function traitChips(f) {
+    if (!f.traits.length) return '';
+    return `<div class="traits">${f.traits.map(t => {
+      const d = DATA.traits[t];
+      return `<span class="trait" title="${esc(d.desc)}"><i class="ticon" style="--tc:${esc(d.color)}">${esc(d.icon)}</i>${esc(t)}</span>`;
+    }).join('')}</div>`;
+  }
+  function originText(f) {
+    const parts = [];
+    if (f.series) parts.push(`<b>${esc(f.series)}</b>`);
+    if (f.aff) parts.push(esc(f.aff));
+    return parts.join(' · ');
+  }
+  function worksHtml(f) {
+    if (!f.works.length) return '';
+    return `<ul class="works">${f.works.map(w =>
+      `<li><a href="${esc(w.url)}" target="_blank" rel="noopener noreferrer"><span class="site ${esc(w.site)}">${esc(SITE_LABEL[w.site] || w.site)}</span><span class="wt">${esc(w.title)}</span><span class="wy">${esc((w.date || '').slice(0, 4))}</span></a></li>`
+    ).join('')}</ul>`;
+  }
+
+  function tileEl(f) {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'tile';
+    el.dataset.id = f.id;
+    el.setAttribute('aria-label', `${f.name} の詳細を開く`);
+    el.innerHTML = `${portraitHtml(f, true)}
+      <span class="tile-body">
+        <span class="tile-name">${esc(f.name)}</span>
+        <span class="roman">${esc(f.roman)}</span>
+        <span class="meta"><i class="dot" style="--c:var(--st-${esc(f.style)})"></i>${esc(STYLE_JA[f.style] || f.style)}<span aria-hidden="true">·</span><span class="h">${f.h}cm</span></span>
+      </span>`;
+    el.addEventListener('click', () => openSheet(f.id));
+    wireImageFallback(el);
+    return el;
+  }
+
+  function cardEl(f) {
+    const el = document.createElement('article');
+    el.className = 'card';
+    el.dataset.id = f.id;
+    const origin = originText(f);
+    el.innerHTML = `
+      <button type="button" class="card-img" aria-label="${esc(f.name)} の詳細を開く">${portraitHtml(f, true)}</button>
+      <div class="card-head">
+        ${f.kana ? `<div class="kana">${esc(f.kana)}</div>` : ''}
+        <button type="button" class="name-btn">${esc(f.name)}</button>
+        <div class="roman">${esc(f.roman)}</div>
+        <div class="badges">${styleBadge(f)}${roleBadge(f)}<span class="h">${f.h}cm</span></div>
+        ${traitChips(f)}
+        ${f.profile ? `<p class="profile">${esc(f.profile)}</p>` : ''}
+      </div>
+      ${origin || f.works.length ? `<div class="card-foot"><div class="origin">${origin ? `<div class="origin-src">出身 ${origin}</div>` : ''}${worksHtml(f)}</div></div>` : ''}`;
+    el.querySelector('.card-img').addEventListener('click', () => openSheet(f.id));
+    el.querySelector('.name-btn').addEventListener('click', () => openSheet(f.id));
+    wireImageFallback(el);
+    return el;
+  }
+
+  function radarSvg(f) {
+    const cx = 130, cy = 108, R = 70;
+    const pt = (i, v) => {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
+      return [cx + Math.cos(a) * R * v / 100, cy + Math.sin(a) * R * v / 100];
+    };
+    const poly = v => STATS.map((_, i) => pt(i, v).map(n => n.toFixed(1)).join(',')).join(' ');
+    const rings = [25, 50, 75, 100].map(v => `<polygon class="rg-ring" points="${poly(v)}"/>`).join('');
+    const axes = STATS.map((_, i) => { const [x, y] = pt(i, 100); return `<line class="rg-axis" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`; }).join('');
+    const vals = STATS.map(([k]) => Math.max(0, Math.min(100, f[k])));
+    const shape = vals.map((v, i) => pt(i, v).map(n => n.toFixed(1)).join(',')).join(' ');
+    const dots = vals.map((v, i) => { const [x, y] = pt(i, v); return `<circle class="rg-pt" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.4"/>`; }).join('');
+    const labels = STATS.map(([k, abbr], i) => {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
+      const x = cx + Math.cos(a) * (R + 16);
+      const y = cy + Math.sin(a) * (R + 16);
+      const anchor = Math.abs(Math.cos(a)) < 0.2 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end';
+      const dy = Math.sin(a) < -0.5 ? -2 : Math.sin(a) > 0.5 ? 10 : 4;
+      return `<text class="rg-lab" data-k="${k}" x="${x.toFixed(1)}" y="${(y + dy).toFixed(1)}" text-anchor="${anchor}">${abbr} <tspan class="rg-val">${f[k]}</tspan></text>`;
+    }).join('');
+    return `<svg class="radar" viewBox="0 0 260 210" role="img" aria-label="能力レーダー: ${STATS.map(([k, , ja]) => `${ja}${f[k]}`).join('、')}">${rings}${axes}<polygon class="rg-poly" points="${shape}"/>${dots}${labels}</svg>`;
+  }
+
+  function sheetHtml(f) {
+    const traitRows = f.traits.map(t => {
+      const d = DATA.traits[t];
+      return `<div class="trait-row"><i class="ticon" style="--tc:${esc(d.color)}">${esc(d.icon)}</i><b>${esc(t)}</b><span>${esc(d.desc)}</span></div>`;
+    }).join('');
+    const facts = [];
+    if (f.series) facts.push(`<dt>出身作品</dt><dd>${esc(f.series)}</dd>`);
+    if (f.aff) facts.push(`<dt>所属</dt><dd>${esc(f.aff)}</dd>`);
+    const s = f.series && seriesByName.get(f.series);
+    if (s && s.first) facts.push(`<dt>シリーズ初出</dt><dd>${esc(s.first.slice(0, 4))}年</dd>`);
+    return `
+      <div class="sheet-main">
+        <div class="sheet-img">${portraitHtml(f, false)}</div>
+        <div class="sheet-info">
+          ${f.kana ? `<div class="kana">${esc(f.kana)}</div>` : ''}
+          <h2 class="sheet-name" id="sheetName">${esc(f.name)}</h2>
+          <div class="roman">${esc(f.roman)}</div>
+          <div class="badges">${styleBadge(f)}${roleBadge(f)}<span class="h">${f.h}cm</span></div>
+          <div class="ovr-line">${tv('ovr', f.ovr)}<span>OVR</span></div>
+          <div class="sheet-charts">${radarSvg(f)}${barsHtml(f, true)}</div>
+        </div>
+      </div>
+      ${traitRows ? `<div class="sheet-sec"><div class="sec-label">特性</div>${traitRows}</div>` : ''}
+      ${f.profile ? `<div class="sheet-sec"><div class="sec-label">プロフィール</div><p class="profile">${esc(f.profile)}</p></div>` : ''}
+      ${facts.length || f.works.length ? `<div class="sheet-sec"><div class="sec-label">出身と登場作品</div>${facts.length ? `<dl class="facts">${facts.join('')}</dl>` : ''}${worksHtml(f)}</div>` : ''}`;
+  }
+
+  // ── 絞り込み・並べ替え・まとめ ───────────────────────
+  const fold = s => String(s || '').toLowerCase().replace(/[\s　・.]/g, '');
+  function visible() {
+    const q = fold(state.q);
+    return FIGHTERS.filter(f =>
+      (!state.style || f.style === state.style) &&
+      (!state.role || f.role === state.role) &&
+      (!state.trait || f.traits.includes(state.trait)) &&
+      (!q || fold(f.name).includes(q) || fold(f.kana).includes(q) || fold(f.roman).includes(q) || fold(f.sortKana).includes(q)));
+  }
+  function ordered(list) {
+    const k = state.sort;
+    const dir = state.desc ? -1 : 1;
+    return list.slice().sort((a, b) => {
+      const c = k === 'kana' ? collator.compare(a.sortKana, b.sortKana) : a[k] - b[k];
+      return c * dir || a.id - b.id;
+    });
+  }
+  function grouped(list) {
+    if (state.group === 'style') {
+      return STYLE_ORDER.map(s => ({ label: STYLE_JA[s], color: `var(--st-${s})`, items: list.filter(f => f.style === s) }))
+        .filter(g => g.items.length)
+        .map(g => ({ ...g, note: `${g.items.length}名` }));
+    }
+    if (state.group === 'series') {
+      const groups = DATA.series.map(s => ({
+        label: s.name,
+        items: list.filter(f => f.series === s.name),
+        note: s.first ? `${s.first.slice(0, 4)}年〜` : '',
+      }));
+      groups.push({ label: '出身作品の登録なし', items: list.filter(f => !f.series), note: '' });
+      return groups.filter(g => g.items.length).map(g => ({ ...g, note: [g.note, `${g.items.length}名`].filter(Boolean).join(' · ') }));
+    }
+    return [{ label: '', items: list }];
+  }
+  // 同値は同順位(1,2,2,4)。まとめているときはまとまりの中での順位
+  function ranks(items) {
+    const k = state.sort;
+    const out = new Map();
+    items.forEach(f => {
+      const better = items.filter(o => state.desc ? o[k] > f[k] : o[k] < f[k]).length;
+      out.set(f.id, better + 1);
+    });
+    return out;
+  }
+
+  // ── 描画(並びが変わると選手が新しい位置へ滑って移動する) ─────────────
+  const rosterEl = document.getElementById('roster');
+  const nodes = { grid: new Map(), cards: new Map() };
+  let flatOrder = [];
+
+  function render(animate) {
+    const list = ordered(visible());
+    const groups = grouped(list);
+    const pool = nodes[state.view];
+    const make = state.view === 'grid' ? tileEl : cardEl;
+    const move = animate && !reducedMotion.matches;
+
+    const first = new Map();
+    if (move) rosterEl.querySelectorAll('.tile, .card').forEach(el => first.set(el, el.getBoundingClientRect()));
+
+    rosterEl.dataset.sort = state.sort;
+    const frag = document.createDocumentFragment();
+    flatOrder = [];
+    const metric = SORTS[state.sort].metric;
+    for (const g of groups) {
+      if (g.label) {
+        const head = document.createElement('div');
+        head.className = 'grp';
+        head.innerHTML = `${g.color ? `<i style="--c:${g.color}"></i>` : ''}<h2>${esc(g.label)}</h2><small>${esc(g.note)}</small>`;
+        frag.append(head);
+      }
+      const box = document.createElement('div');
+      box.className = state.view === 'grid' ? 'tiles' : 'cards';
+      const rank = metric ? ranks(g.items) : null;
+      for (const f of g.items) {
+        let el = pool.get(f.id);
+        if (!el) { el = make(f); pool.set(f.id, el); }
+        const badge = el.querySelector('.rank');
+        if (badge) { badge.hidden = !rank; badge.textContent = rank ? rank.get(f.id) : ''; }
+        box.append(el);
+        flatOrder.push(f.id);
+      }
+      frag.append(box);
+    }
+    if (!list.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.innerHTML = '<p style="margin:0">条件に合う選手はいません。</p><button type="button" class="reset">絞り込みを解除</button>';
+      empty.querySelector('button').addEventListener('click', clearFilters);
+      frag.append(empty);
+    }
+    rosterEl.replaceChildren(frag);
+    document.getElementById('count').innerHTML = `表示 <b>${list.length}</b> / ${FIGHTERS.length}名`;
+
+    if (move) {
+      const vh = window.innerHeight;
+      rosterEl.querySelectorAll('.tile, .card').forEach(el => {
+        const before = first.get(el);
+        const after = el.getBoundingClientRect();
+        if (!before) {
+          if (after.bottom > 0 && after.top < vh) el.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'ease-out' });
+          return;
+        }
+        const dx = before.left - after.left;
+        const dy = before.top - after.top;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+        const onScreen = (before.bottom > 0 && before.top < vh) || (after.bottom > 0 && after.top < vh);
+        if (!onScreen) return;
+        el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 480, easing: 'cubic-bezier(.2,.75,.15,1)' });
+      });
+    }
+  }
+
+  // ── 操作バー ────────────────────────────────────
+  const sortSel = document.getElementById('sort');
+  sortSel.innerHTML = Object.entries(SORTS).map(([k, s]) => `<option value="${k}">${esc(s.label)}</option>`).join('');
+  const dirBtn = document.getElementById('dir');
+  const traitSel = document.getElementById('trait');
+  traitSel.innerHTML = '<option value="">特性: すべて</option>' + Object.keys(DATA.traits).map(t => {
+    const n = FIGHTERS.filter(f => f.traits.includes(t)).length;
+    return `<option value="${esc(t)}">${esc(t)}(${n})</option>`;
+  }).join('');
+
+  function chipHtml(value, label, color, n) {
+    return `<button type="button" class="chip" data-v="${esc(value)}" aria-pressed="false"${color ? ` style="--c:${color}"` : ''}>${color ? '<i></i>' : ''}${esc(label)}<small>${n}</small></button>`;
+  }
+  const stylesEl = document.getElementById('styles');
+  stylesEl.innerHTML = STYLE_ORDER.map(s => chipHtml(s, STYLE_JA[s], `var(--st-${s})`, FIGHTERS.filter(f => f.style === s).length)).join('');
+  const rolesEl = document.getElementById('roles');
+  rolesEl.innerHTML = ROLE_ORDER.map(r => chipHtml(r, ROLE_JA[r], '', FIGHTERS.filter(f => f.role === r).length)).join('');
+
+  function syncControls() {
+    document.querySelectorAll('#view button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.view)));
+    document.querySelectorAll('#group button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.group)));
+    stylesEl.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.style)));
+    rolesEl.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.role)));
+    sortSel.value = state.sort;
+    traitSel.value = state.trait;
+    const metric = SORTS[state.sort].metric;
+    dirBtn.textContent = state.desc ? (metric ? '↓ 高い順' : '↓ 降順') : (metric ? '↑ 低い順' : '↑ 昇順');
+    dirBtn.setAttribute('aria-label', `並び順を反転(いまは${state.desc ? '降順' : '昇順'})`);
+  }
+  function update(animate = true) { syncControls(); render(animate); savePrefs(); }
+  function clearFilters() {
+    Object.assign(state, { style: '', role: '', trait: '', q: '' });
+    document.getElementById('q').value = '';
+    update();
+  }
+
+  document.getElementById('view').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || b.dataset.v === state.view) return;
+    state.view = b.dataset.v; update(false);
+  });
+  document.getElementById('group').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || b.dataset.v === state.group) return;
+    state.group = b.dataset.v; update();
+  });
+  sortSel.addEventListener('change', () => { state.sort = sortSel.value; state.desc = SORTS[state.sort].desc; update(); });
+  dirBtn.addEventListener('click', () => { state.desc = !state.desc; update(); });
+  stylesEl.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    state.style = state.style === b.dataset.v ? '' : b.dataset.v; update();
+  });
+  rolesEl.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    state.role = state.role === b.dataset.v ? '' : b.dataset.v; update();
+  });
+  traitSel.addEventListener('change', () => { state.trait = traitSel.value; update(); });
+  let qTimer = 0;
+  document.getElementById('q').addEventListener('input', e => {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(() => { state.q = e.target.value; update(false); }, 120);
+  });
+
+  // ── 詳細シート ───────────────────────────────────
+  const sheet = document.getElementById('sheet');
+  const sheetBody = document.getElementById('sheetBody');
+  let current = null;
+  let returnFocus = null;
+  function openSheet(id) {
+    const f = byId.get(id);
+    if (!f) return;
+    if (sheet.hidden) returnFocus = document.activeElement;
+    current = id;
+    sheetBody.innerHTML = sheetHtml(f);
+    wireImageFallback(sheetBody);
+    sheetBody.scrollTop = 0;
+    document.getElementById('sheetNo').textContent = no(f.id);
+    const i = flatOrder.indexOf(id);
+    document.getElementById('sheetPos').textContent = i >= 0 ? `${i + 1} / ${flatOrder.length}` : '';
+    if (sheet.hidden) {
+      sheet.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      document.getElementById('close').focus();
+    }
+  }
+  function closeSheet() {
+    if (sheet.hidden) return;
+    sheet.hidden = true;
+    current = null;
+    document.documentElement.style.overflow = '';
+    if (returnFocus && document.contains(returnFocus)) returnFocus.focus();
+  }
+  function step(d) {
+    if (!flatOrder.length) return;
+    const i = flatOrder.indexOf(current);
+    const next = flatOrder[((i < 0 ? 0 : i) + d + flatOrder.length) % flatOrder.length];
+    openSheet(next);
+  }
+  document.getElementById('close').addEventListener('click', closeSheet);
+  document.getElementById('prev').addEventListener('click', () => step(-1));
+  document.getElementById('next').addEventListener('click', () => step(1));
+  sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+  document.addEventListener('keydown', e => {
+    if (sheet.hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeSheet(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+    else if (e.key === 'Tab') {
+      const focusables = [...sheet.querySelectorAll('button, a[href]')].filter(el => !el.hidden && el.offsetParent !== null);
+      if (!focusables.length) return;
+      const firstEl = focusables[0], lastEl = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === firstEl) { e.preventDefault(); lastEl.focus(); }
+      else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); firstEl.focus(); }
+    }
+  });
+
+  // ── 見出しの数字・脚注 ─────────────────────────────
+  const workCount = new Set(FIGHTERS.flatMap(f => f.works.map(w => w.url))).size;
+  document.getElementById('facts').innerHTML = [
+    [FIGHTERS.length, '名'],
+    [DATA.series.length, 'の作品シリーズから'],
+    [workCount, '本の登場作品'],
+  ].map(([n, label]) => `<li><b>${n}</b>${esc(label)}</li>`).join('');
+  document.getElementById('legend').innerHTML = STATS.map(([k, abbr, ja]) => `<span data-k="${k}"><b>${abbr}</b>${ja}</span>`).join('') + '<span data-k="ovr"><b>OVR</b>総合</span>';
+  document.getElementById('sourceNote').textContent = `ふりがな・出身作品・登場作品は作者のキャラクター資料(${DATA.taken}時点)から。登場作品のリンクは pixiv・FANBOX の投稿ページへ移動します。`;
+
+  update(false);
+})();
+</script>
+
+</body>
+</html>
