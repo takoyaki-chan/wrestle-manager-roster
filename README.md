@@ -1,6 +1,6 @@
-# WRESTLE MANAGER 選手名鑑
+# たこやき キャラクター選手名鑑
 
-女子プロレス団体経営シミュレーション WRESTLE MANAGER に登場する全選手の名鑑ページ。
+たこやきの女子プロレス創作に登場する全選手の名鑑ページ(能力値は WRESTLE MANAGER 準拠)。
 
 公開URL: https://takoyaki-chan.github.io/wrestle-manager-roster/
 
